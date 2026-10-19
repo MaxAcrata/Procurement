@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "procurement-agent"
 version = "0.2.0"
@@ -22,6 +26,10 @@ dependencies = [
 
 [project.scripts]
 procurement = "main:app"
+
+[tool.setuptools]
+packages = ["core", "generators", "gui", "gui.components", "gui.services", "gui.styles", "gui.viewmodels", "gui.views", "mailer", "models", "parsers"]
+py-modules = ["main", "gui_app", "config", "logging_setup", "build_entry"]
 
 [dependency-groups]
 dev = [
