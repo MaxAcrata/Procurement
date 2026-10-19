@@ -3,8 +3,8 @@
 import tempfile
 from pathlib import Path
 
-from models import Product, SupplierGroup, ComparisonItem, SupplierMatchStatus
-from generators.excel_gen import generate_purchase_order, generate_comparison_report, _safe_filename
+from generators.excel_gen import _safe_filename, generate_comparison_report, generate_purchase_order
+from models import ComparisonItem, Product, SupplierGroup, SupplierMatchStatus
 
 
 class TestSafeFilename:
@@ -12,7 +12,7 @@ class TestSafeFilename:
         assert _safe_filename("ООО Ромашка") == "ООО_Ромашка"
 
     def test_special_chars(self):
-        result = _safe_filename("ООО \"Ромашка\" & Co.")
+        result = _safe_filename('ООО "Ромашка" & Co.')
         assert "/" not in result
         assert "\\" not in result
         assert '"' not in result

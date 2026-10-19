@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from core.article_match import ArticleConfig, classify, calculate_score
+from core.article_match import ArticleConfig, calculate_score, classify
 from core.comparator import compare_tables
 from core.normalizer import normalize_data
 from models import Product, ReviewPair
@@ -57,6 +57,7 @@ def test_review_pairs_optional_and_backward_compatible():
 
 # --- Task 6: review queue backend + GUI ---
 
+
 def test_backend_review_queue_persist_and_decide(tmp_path):
     import gui.services.backend_impl as bi
     from gui.services.backend_impl import ProcurementBackend
@@ -85,6 +86,7 @@ def test_backend_review_queue_persist_and_decide(tmp_path):
 
 def test_review_vm_emits_and_refreshes():
     from PySide6.QtWidgets import QApplication
+
     from gui.services.backend_impl import ProcurementBackend
     from gui.viewmodels.review_vm import ReviewViewModel
 
@@ -105,6 +107,7 @@ def test_review_vm_emits_and_refreshes():
 
 def test_review_page_shows_pairs_and_decides():
     from PySide6.QtWidgets import QApplication
+
     from gui.services.backend_impl import ProcurementBackend
     from gui.viewmodels.review_vm import ReviewViewModel
     from gui.views.review_page import ReviewPage
@@ -127,19 +130,20 @@ def test_review_page_shows_pairs_and_decides():
 
 
 def test_backend_process_files_collects_review_pairs():
-    import gui.services.backend_impl as bi
     from gui.services.backend_impl import ProcurementBackend
 
     # Use real data path (no monkeypatch needed for this test)
-    backend = ProcurementBackend()
+    ProcurementBackend()
     # Simulate two products that fall in gray band
     from models import Product
+
     p1 = Product(name="A", article="RT110GR.1/000/600", quantity=1.0, supplier="S")
     p2 = Product(name="B", article="RT110GR.1/128/150", quantity=1.0, supplier="S")
 
     # Directly test normalize with review_pairs (bypasses parse)
-    from core.normalizer import normalize_data
     from core.article_match import ArticleConfig
+    from core.normalizer import normalize_data
+
     cfg = ArticleConfig(threshold=0.8, gray_band=(0.4, 0.8))
     pairs: list[ReviewPair] = []
     normalize_data([p1, p2], review_pairs=pairs, config=cfg)

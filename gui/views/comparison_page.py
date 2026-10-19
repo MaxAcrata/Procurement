@@ -1,12 +1,20 @@
 """Comparison page view."""
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView, QFileDialog, QFrame
-)
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Slot
 from PySide6.QtGui import QColor
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QFileDialog,
+    QFrame,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
+)
 
 from gui.viewmodels.comparison_vm import ComparisonViewModel
 
@@ -67,7 +75,13 @@ class ComparisonPage(QWidget):
 
         self.summary_layout = QHBoxLayout()
         self.summary_labels = {}
-        for key, text in [("total", "Всего"), ("ok", "Совпадений"), ("mismatches", "Расхождения"), ("missing", "Отсутствует"), ("extra", "Лишний")]:
+        for key, text in [
+            ("total", "Всего"),
+            ("ok", "Совпадений"),
+            ("mismatches", "Расхождения"),
+            ("missing", "Отсутствует"),
+            ("extra", "Лишний"),
+        ]:
             frame = QFrame()
             frame.setStyleSheet("QFrame { background-color: #313244; border-radius: 8px; padding: 12px; }")
             v_layout = QVBoxLayout(frame)
@@ -81,12 +95,14 @@ class ComparisonPage(QWidget):
 
         self.table = QTableWidget()
         self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels([
-            "Артикул в Заявке",
-            "Артикул в Счете",
-            "Кол-во в Заявке",
-            "Кол-во в Счете",
-        ])
+        self.table.setHorizontalHeaderLabels(
+            [
+                "Артикул в Заявке",
+                "Артикул в Счете",
+                "Кол-во в Заявке",
+                "Кол-во в Счете",
+            ]
+        )
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setAlternatingRowColors(True)
@@ -100,19 +116,13 @@ class ComparisonPage(QWidget):
         self.vm.comparison_done.connect(self._on_comparison_done)
 
     def _select_order(self):
-        path, _ = QFileDialog.getOpenFileName(
-            self, "Выберите файл заявки", "",
-            "Excel (*.xlsx);;Все файлы (*)"
-        )
+        path, _ = QFileDialog.getOpenFileName(self, "Выберите файл заявки", "", "Excel (*.xlsx);;Все файлы (*)")
         if path:
             self._order_path = path
             self.order_label.setText(path.split("/")[-1].split("\\")[-1])
 
     def _select_invoices(self):
-        paths, _ = QFileDialog.getOpenFileNames(
-            self, "Выберите файлы счетов", "",
-            "Excel (*.xlsx);;Все файлы (*)"
-        )
+        paths, _ = QFileDialog.getOpenFileNames(self, "Выберите файлы счетов", "", "Excel (*.xlsx);;Все файлы (*)")
         if paths:
             self._invoice_paths = paths
             self.invoice_label.setText("\n".join(p.split("/")[-1].split("\\")[-1] for p in paths))
@@ -121,6 +131,7 @@ class ComparisonPage(QWidget):
         if self._order_path and self._invoice_paths:
             self.status_label.setText("")
             from pathlib import Path
+
             self.vm.compare(Path(self._order_path), [Path(p) for p in self._invoice_paths])
         else:
             self.status_label.setText("Выберите заявку и счета для сравнения")

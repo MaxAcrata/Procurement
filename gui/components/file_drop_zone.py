@@ -1,8 +1,8 @@
 """File drop zone component."""
 
-from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QDragEnterEvent, QDropEvent
+from PySide6.QtWidgets import QFrame, QLabel, QVBoxLayout
 
 
 class FileDropZone(QFrame):

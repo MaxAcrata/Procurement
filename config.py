@@ -18,6 +18,7 @@ EMAILS_DB_PATH = PROJECT_ROOT / "emails_db.json"
 
 # ── SMTP ─────────────────────────────────────────────────────────────────────
 
+
 @dataclass(frozen=True)
 class SmtpConfig:
     host: str = field(default_factory=lambda: os.getenv("SMTP_HOST", "smtp.gmail.com"))
@@ -30,7 +31,9 @@ class SmtpConfig:
     def is_configured(self) -> bool:
         return bool(self.user and self.password)
 
+
 # ── Article matching ─────────────────────────────────────────────────────────
+
 
 @dataclass(frozen=True)
 class ArticleMatchConfig:
@@ -41,7 +44,9 @@ class ArticleMatchConfig:
     weight_numeric: float = 0.2
     weight_fuzzy: float = 0.1
 
+
 # ── Retry / timeout ─────────────────────────────────────────────────────────
+
 
 @dataclass(frozen=True)
 class RetryConfig:
@@ -49,13 +54,17 @@ class RetryConfig:
     backoff_factor: float = 0.5
     timeout_seconds: float = 30.0
 
+
 # ── OCR ──────────────────────────────────────────────────────────────────────
+
 
 @dataclass(frozen=True)
 class OcrConfig:
     low_confidence_threshold: float = 70.0
 
+
 # ── Application ──────────────────────────────────────────────────────────────
+
 
 @dataclass(frozen=True)
 class AppConfig:

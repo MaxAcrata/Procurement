@@ -2,12 +2,20 @@
 
 from pathlib import Path
 
+from PySide6.QtCore import QSettings, Slot
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView, QFileDialog, QMessageBox
+    QAbstractItemView,
+    QFileDialog,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
 )
-from PySide6.QtCore import Qt, Slot, QSettings
 
 from gui.viewmodels.orders_vm import OrdersViewModel
 
@@ -37,9 +45,7 @@ class OrdersPage(QWidget):
 
         self.table = QTableWidget()
         self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(
-            ["Поставщик", "Наименование", "Артикул", "Кол-во", "Ед.изм"]
-        )
+        self.table.setHorizontalHeaderLabels(["Поставщик", "Наименование", "Артикул", "Кол-во", "Ед.изм"])
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # Наименование
@@ -101,9 +107,7 @@ class OrdersPage(QWidget):
 
         last_folder = self._settings.value("lastOutputFolder", "", type=str)
 
-        folder = QFileDialog.getExistingDirectory(
-            self, "Выберите папку для сохранения", last_folder
-        )
+        folder = QFileDialog.getExistingDirectory(self, "Выберите папку для сохранения", last_folder)
         if not folder:
             return
 

@@ -11,8 +11,8 @@ import time
 
 import pytest
 
-
 # ── helpers ─────────────────────────────────────────────────────────────────
+
 
 class _RecordingSMTP:
     """Stand-in for smtplib.SMTP; fails `fail_times` first connections/sends."""
@@ -64,6 +64,7 @@ def _fake_settings_retry(monkeypatch, max_retries=3, backoff_factor=0.5, timeout
 
 
 # ── P1-retry ────────────────────────────────────────────────────────────────
+
 
 def test_retry_uses_exponential_backoff_between_attempts(monkeypatch):
     """Failing sends must pause backoff_factor * 2**(attempt-1) between tries."""
@@ -156,6 +157,7 @@ def test_smtp_connect_uses_configured_timeout(monkeypatch):
 
 # ── P1-email validation ─────────────────────────────────────────────────────
 
+
 def test_update_email_rejects_invalid_address():
     """Invalid addresses must raise and must not be persisted."""
     from gui.services.backend_impl import ProcurementBackend
@@ -229,6 +231,7 @@ def test_send_email_rejects_invalid_recipient(monkeypatch):
 
 
 # ── GUI feedback on validation failure ──────────────────────────────────────
+
 
 def test_email_vm_emits_error_and_restores_state_on_invalid_email():
     """Invalid input must surface an error and re-sync the view with stored state."""

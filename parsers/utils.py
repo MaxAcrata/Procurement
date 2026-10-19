@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 # ── Quantity parsing ─────────────────────────────────────────────────────────
 
+
 def parse_quantity(value: Any) -> float:
     """Parse a quantity value from various formats (str, int, float)."""
     if value is None:

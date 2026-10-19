@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 
 from config import settings
-from models import DocumentParseResult, Product
+from models import DocumentParseResult
 from parsers.utils import extract_products_from_text
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ def parse_image(file_path: Path) -> DocumentParseResult:
         img = Image.open(str(file_path))
         data = pytesseract.image_to_data(img, lang="rus+eng", output_type=pytesseract.Output.DICT)
         words: list[str] = []
-        for text, conf in zip(data.get("text", []), data.get("conf", [])):
+        for text, conf in zip(data.get("text", []), data.get("conf", []), strict=False):
             try:
                 c = float(conf)
             except (TypeError, ValueError):
@@ -45,6 +45,7 @@ def parse_image(file_path: Path) -> DocumentParseResult:
     if not raw_text:
         try:
             from PIL import Image
+
             img = Image.open(str(file_path))
             raw_text = f"[Image: {img.size[0]}x{img.size[1]}, {img.format}]"
         except Exception:
@@ -63,6 +64,9 @@ def parse_image(file_path: Path) -> DocumentParseResult:
             )
 
     return DocumentParseResult(
-        file_path=file_path, file_type="image", products=products,
-        raw_text=raw_text, errors=errors,
+        file_path=file_path,
+        file_type="image",
+        products=products,
+        raw_text=raw_text,
+        errors=errors,
     )

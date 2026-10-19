@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import re
 import smtplib
-import socket
 import time
 from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
@@ -86,7 +85,7 @@ def send_email(
                 server.send_message(msg)
             logger.info("Email sent to %s (attempt %d)", to, attempt)
             return {"status": "success", "message": f"Email sent to {to}"}
-        except (smtplib.SMTPException, socket.timeout, ConnectionError, OSError) as e:
+        except (TimeoutError, smtplib.SMTPException, ConnectionError, OSError) as e:
             last_error = e
             logger.warning("Email send attempt %d failed: %s", attempt, e)
             if attempt < max_retries:

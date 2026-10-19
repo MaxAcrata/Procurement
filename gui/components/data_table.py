@@ -1,10 +1,12 @@
 """Reusable data table component."""
 
-from PySide6.QtWidgets import (
-    QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView,
-)
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QHeaderView,
+    QTableWidget,
+    QTableWidgetItem,
+)
 
 
 class DataTable(QTableWidget):
@@ -50,9 +52,7 @@ class DataTable(QTableWidget):
                     if editable_columns and col_idx in editable_columns
                     else item.flags() & ~Qt.ItemFlag.ItemIsEditable
                 )
-                item.setTextAlignment(
-                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
-                )
+                item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
                 self.setItem(row_idx, col_idx, item)
 
         # Фиксируем ширину столбцов
@@ -87,9 +87,7 @@ class DataTable(QTableWidget):
         for row_idx, row_data in enumerate(data):
             for col_idx, cell_data in enumerate(row_data):
                 item = QTableWidgetItem(str(cell_data))
-                item.setTextAlignment(
-                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
-                )
+                item.setTextAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
                 if col_idx == status_col and cell_data in status_colors:
                     item.setForeground(self._qcolor(status_colors[cell_data]))
                 self.setItem(row_idx, col_idx, item)

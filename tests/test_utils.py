@@ -1,6 +1,6 @@
 """Tests for shared parser utilities."""
 
-from parsers.utils import parse_quantity, map_columns_by_keywords, extract_products_from_text
+from parsers.utils import extract_products_from_text, map_columns_by_keywords, parse_quantity
 
 
 class TestParseQuantity:
@@ -75,10 +75,7 @@ class TestExtractProductsFromText:
         assert products[0].quantity == 100.0
 
     def test_multiple_lines(self):
-        text = (
-            "Ручка Артикул:PEN-001 Кол-во:50\n"
-            "Степлер Артикул:STAP-10 Кол-во:10"
-        )
+        text = "Ручка Артикул:PEN-001 Кол-во:50\nСтеплер Артикул:STAP-10 Кол-во:10"
         products = extract_products_from_text(text)
         assert len(products) == 2
 

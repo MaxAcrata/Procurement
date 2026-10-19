@@ -7,15 +7,15 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from gui.services.backend_interface import BackendService
-from models import Product, SupplierGroup, ComparisonItem, ReviewPair
-from core.normalizer import normalize_data
-from core.grouper import group_by_supplier
-from core.comparator import compare_tables
-from generators.excel_gen import generate_purchase_order, generate_comparison_report
-from mailer.sender import is_valid_email, send_purchase_order_email
-from parsers import parse_document
 from config import settings
+from core.comparator import compare_tables
+from core.grouper import group_by_supplier
+from core.normalizer import normalize_data
+from generators.excel_gen import generate_purchase_order
+from gui.services.backend_interface import BackendService
+from mailer.sender import is_valid_email, send_purchase_order_email
+from models import ComparisonItem, Product, ReviewPair, SupplierGroup
+from parsers import parse_document
 
 logger = logging.getLogger(__name__)
 
@@ -68,12 +68,14 @@ class ProcurementBackend(BackendService):
     def decide_review_pair(self, article_a: str, article_b: str, decision: str) -> None:
         if decision not in ("confirmed", "rejected"):
             raise ValueError(f"Invalid decision: {decision}")
-        self._review_decisions.append({
-            "article_a": article_a,
-            "article_b": article_b,
-            "decision": decision,
-            "ts": datetime.now().isoformat(),
-        })
+        self._review_decisions.append(
+            {
+                "article_a": article_a,
+                "article_b": article_b,
+                "decision": decision,
+                "ts": datetime.now().isoformat(),
+            }
+        )
         self._save_review_db()
 
     # ── Email DB persistence ─────────────────────────────────────────────
@@ -110,7 +112,9 @@ class ProcurementBackend(BackendService):
         self._suppliers = group_by_supplier(self._products)
 
         self._add_history("process", f"Processed {len(files)} files, found {len(self._products)} items")
-        logger.info("Processed %d files → %d products, %d suppliers", len(files), len(self._products), len(self._suppliers))
+        logger.info(
+            "Processed %d files → %d products, %d suppliers", len(files), len(self._products), len(self._suppliers)
+        )
 
         return {
             "status": "error" if errors else "success",
@@ -203,12 +207,14 @@ class ProcurementBackend(BackendService):
             if outcome.get("status") == "success":
                 results.append({"supplier": sg.name, "email": email, "status": "sent"})
             else:
-                results.append({
-                    "supplier": sg.name,
-                    "email": email,
-                    "status": outcome.get("status", "error"),
-                    "message": outcome.get("message", ""),
-                })
+                results.append(
+                    {
+                        "supplier": sg.name,
+                        "email": email,
+                        "status": outcome.get("status", "error"),
+                        "message": outcome.get("message", ""),
+                    }
+                )
 
         sent_count = sum(1 for r in results if r["status"] == "sent")
         self._add_history("email", f"Sent {sent_count} emails")
@@ -218,8 +224,10 @@ class ProcurementBackend(BackendService):
         return self._history.copy()
 
     def _add_history(self, action: str, details: str) -> None:
-        self._history.append({
-            "timestamp": datetime.now().isoformat(),
-            "action": action,
-            "details": details,
-        })
+        self._history.append(
+            {
+                "timestamp": datetime.now().isoformat(),
+                "action": action,
+                "details": details,
+            }
+        )

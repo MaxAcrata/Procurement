@@ -1,11 +1,17 @@
 """Email page view."""
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView, QFileDialog
-)
 from PySide6.QtCore import Qt, Slot
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
+)
 
 from gui.viewmodels.email_vm import EmailViewModel
 

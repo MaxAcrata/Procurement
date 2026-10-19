@@ -1,6 +1,6 @@
 """Tests for application configuration."""
 
-from config import settings, AppConfig, SmtpConfig, ArticleMatchConfig, RetryConfig
+from config import AppConfig, ArticleMatchConfig, RetryConfig, SmtpConfig, settings
 
 
 class TestAppConfig:
@@ -33,5 +33,6 @@ class TestAppConfig:
 
     def test_config_is_frozen(self):
         import pytest
+
         with pytest.raises(AttributeError):
             settings.smtp.port = 999

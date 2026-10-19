@@ -5,8 +5,8 @@ from __future__ import annotations
 import logging
 import math
 
-from models import ComparisonItem, Product, SupplierMatchStatus, ReviewPair
-from core.article_match import calculate_score, classify, ArticleConfig
+from core.article_match import ArticleConfig, calculate_score, classify
+from models import ComparisonItem, Product, ReviewPair, SupplierMatchStatus
 
 logger = logging.getLogger(__name__)
 
@@ -32,12 +32,14 @@ def compare_tables(
             if score >= threshold:
                 candidates.append((score, oi, ii))
             elif review_pairs is not None and classify(score, config) == "review":
-                review_pairs.append(ReviewPair(
-                    article_a=order_item.article,
-                    article_b=inv_item.article,
-                    score=score,
-                    source="comparator",
-                ))
+                review_pairs.append(
+                    ReviewPair(
+                        article_a=order_item.article,
+                        article_b=inv_item.article,
+                        score=score,
+                        source="comparator",
+                    )
+                )
     candidates.sort(key=lambda t: (-t[0], t[1], t[2]))
 
     pairing: dict[int, int] = {}
@@ -59,31 +61,39 @@ def compare_tables(
                 status = SupplierMatchStatus.MISMATCH_QUANTITY
                 diff = inv_item.quantity - order_item.quantity
 
-            results.append(ComparisonItem(
-                product=order_item,
-                invoice_article=inv_item.article,
-                invoice_quantity=inv_item.quantity,
-                status=status,
-                diff=diff,
-            ))
+            results.append(
+                ComparisonItem(
+                    product=order_item,
+                    invoice_article=inv_item.article,
+                    invoice_quantity=inv_item.quantity,
+                    status=status,
+                    diff=diff,
+                )
+            )
         else:
-            results.append(ComparisonItem(
-                product=order_item,
-                invoice_quantity=None,
-                status=SupplierMatchStatus.MISSING,
-            ))
+            results.append(
+                ComparisonItem(
+                    product=order_item,
+                    invoice_quantity=None,
+                    status=SupplierMatchStatus.MISSING,
+                )
+            )
 
     for i, inv_item in enumerate(invoice_products):
         if i not in matched_invoice:
-            results.append(ComparisonItem(
-                product=inv_item,
-                invoice_quantity=inv_item.quantity,
-                status=SupplierMatchStatus.EXTRA,
-            ))
+            results.append(
+                ComparisonItem(
+                    product=inv_item,
+                    invoice_quantity=inv_item.quantity,
+                    status=SupplierMatchStatus.EXTRA,
+                )
+            )
 
     logger.info(
         "Comparison done: %d order items vs %d invoice items → %d results",
-        len(order_products), len(invoice_products), len(results),
+        len(order_products),
+        len(invoice_products),
+        len(results),
     )
     return results
 

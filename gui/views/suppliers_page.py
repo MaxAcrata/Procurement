@@ -1,10 +1,7 @@
 """Suppliers page view."""
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QInputDialog
-)
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Slot
+from PySide6.QtWidgets import QHBoxLayout, QInputDialog, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from gui.components import DataTable
 from gui.viewmodels.suppliers_vm import SuppliersViewModel
@@ -63,11 +60,6 @@ class SuppliersPage(QWidget):
             return
 
         old_name = self.table.item(row, 0).text()
-        new_name, ok = QInputDialog.getText(
-            self,
-            "Переименовать поставщика",
-            "Новое имя:",
-            text=old_name
-        )
+        new_name, ok = QInputDialog.getText(self, "Переименовать поставщика", "Новое имя:", text=old_name)
         if ok and new_name and new_name != old_name:
             self.vm.rename_supplier(old_name, new_name)

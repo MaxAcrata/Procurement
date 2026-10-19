@@ -1,7 +1,7 @@
 """Tests for order vs invoice comparison."""
 
-from models import Product, SupplierMatchStatus
 from core.comparator import compare_tables, get_comparison_summary
+from models import Product, SupplierMatchStatus
 
 
 class TestCompareTables:
@@ -59,6 +59,7 @@ class TestComparisonSummary:
 
     def test_all_ok(self):
         from models import ComparisonItem
+
         results = [
             ComparisonItem(product=Product("A", "A1", 1), status=SupplierMatchStatus.OK),
             ComparisonItem(product=Product("B", "B1", 1), status=SupplierMatchStatus.OK),
@@ -70,6 +71,7 @@ class TestComparisonSummary:
 
     def test_mixed(self):
         from models import ComparisonItem
+
         results = [
             ComparisonItem(product=Product("A", "A1", 1), status=SupplierMatchStatus.OK),
             ComparisonItem(product=Product("B", "B1", 1), status=SupplierMatchStatus.MISSING),

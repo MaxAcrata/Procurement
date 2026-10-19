@@ -12,7 +12,7 @@ from rich.table import Table
 
 from config import settings
 from core.comparator import compare_tables, get_comparison_summary
-from core.grouper import group_by_supplier, get_supplier_email
+from core.grouper import get_supplier_email, group_by_supplier
 from core.normalizer import normalize_data
 from generators.excel_gen import generate_comparison_report, generate_purchase_order
 from logging_setup import setup_logging
@@ -106,7 +106,9 @@ def _interactive_compare() -> None:
         console.print("[yellow]Не все файлы указаны[/]")
         return
 
-    compare(order_file=Path(order_file), invoice_files=[Path(invoice_file)], output=Path("output/comparison_report.xlsx"))
+    compare(
+        order_file=Path(order_file), invoice_files=[Path(invoice_file)], output=Path("output/comparison_report.xlsx")
+    )
 
 
 @app.command()
@@ -165,7 +167,7 @@ def process(
 
         from mailer.sender import send_purchase_order_email
 
-        for sg, attachment in zip(suppliers, generated_files):
+        for sg, attachment in zip(suppliers, generated_files, strict=False):
             email = get_supplier_email(sg.name, emails_map)
             if not email:
                 console.print(f"  [yellow]No email for {sg.name}, skipping[/]")
@@ -309,6 +311,7 @@ def calibrate(
 ) -> None:
     """Sweep match thresholds over labeled review pairs; print P/R/F1 and recommend one."""
     import re
+
     from core.article_match import calculate_score
 
     if not labels.exists():

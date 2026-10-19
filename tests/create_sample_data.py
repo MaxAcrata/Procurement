@@ -1,7 +1,8 @@
 """Create sample test data for the compare command."""
 
-import openpyxl
 from pathlib import Path
+
+import openpyxl
 
 
 def create_sample_order():

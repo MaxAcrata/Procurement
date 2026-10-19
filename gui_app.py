@@ -10,11 +10,11 @@ from logging_setup import setup_logging
 def main() -> None:
     setup_logging()
 
-    from PySide6.QtWidgets import QApplication
     from PySide6.QtGui import QFont
+    from PySide6.QtWidgets import QApplication
 
-    from gui.styles.dark_theme import DARK_THEME
     from gui.main_window import MainWindow
+    from gui.styles.dark_theme import DARK_THEME
 
     app = QApplication(sys.argv)
     app.setStyleSheet(DARK_THEME)

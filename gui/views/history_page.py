@@ -1,11 +1,16 @@
 """History page view."""
 
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QPushButton, QLabel,
-    QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView
+    QAbstractItemView,
+    QHeaderView,
+    QLabel,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
 )
-from PySide6.QtCore import Qt, Slot
 
 from gui.viewmodels.history_vm import HistoryViewModel
 

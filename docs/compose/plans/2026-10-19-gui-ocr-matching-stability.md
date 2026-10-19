@@ -299,8 +299,10 @@ Expected: new tests FAIL — `process_files` still synchronous / error path emit
 ```python
 from gui.services.task_runner import TaskRunner
 
+
 class FileUploadViewModel(QObject):
     ...
+
     def __init__(self, backend: BackendService, parent=None):
         super().__init__(parent)
         self._backend = backend
@@ -325,19 +327,20 @@ class FileUploadViewModel(QObject):
 `orders_vm.py` — replace `generate_orders`:
 
 ```python
-    def generate_orders(self, output_dir: Path = Path("output")):
-        if self._runner.busy:
-            return
-        self._runner.run(
-            lambda: self._backend.generate_orders(output_dir),
-            on_result=self._on_orders_generated,
-            on_error=self.error_occurred.emit,
-        )
+def generate_orders(self, output_dir: Path = Path("output")):
+    if self._runner.busy:
+        return
+    self._runner.run(
+        lambda: self._backend.generate_orders(output_dir),
+        on_result=self._on_orders_generated,
+        on_error=self.error_occurred.emit,
+    )
 
-    def _on_orders_generated(self, files: list):
-        self._generated_files = files
-        self.orders_generated.emit(self._generated_files)
-        self.refresh()
+
+def _on_orders_generated(self, files: list):
+    self._generated_files = files
+    self.orders_generated.emit(self._generated_files)
+    self.refresh()
 ```
 
 (Add `self._runner = TaskRunner(self)` in `__init__` and the `TaskRunner` import.)
@@ -368,18 +371,19 @@ class FileUploadViewModel(QObject):
 `email_vm.py` — replace `send_emails`:
 
 ```python
-    def send_emails(self):
-        if self._runner.busy:
-            return
-        self._runner.run(
-            self._backend.send_emails,
-            on_result=self._on_emails_sent,
-            on_error=self.error_occurred.emit,
-        )
+def send_emails(self):
+    if self._runner.busy:
+        return
+    self._runner.run(
+        self._backend.send_emails,
+        on_result=self._on_emails_sent,
+        on_error=self.error_occurred.emit,
+    )
 
-    def _on_emails_sent(self, results: list):
-        self.emails_sent.emit(results)
-        self.refresh()
+
+def _on_emails_sent(self, results: list):
+    self.emails_sent.emit(results)
+    self.refresh()
 ```
 
 (Add `self._runner = TaskRunner(self)` in `__init__`. `update_email` stays synchronous — it is a tiny JSON write.)
@@ -473,8 +477,7 @@ def test_parse_image_warns_when_mean_below_threshold(monkeypatch, tmp_path):
 def test_normalize_preserves_unit_and_ocr_confidence():
     from core.normalizer import normalize_data
 
-    p = Product(name="Петля", article="71B3750", quantity=1.0, supplier="Blum",
-                unit="шт", ocr_confidence=42.0)
+    p = Product(name="Петля", article="71B3750", quantity=1.0, supplier="Blum", unit="шт", ocr_confidence=42.0)
     out = normalize_data([p])
     assert out and out[0].unit == "шт"
     assert out[0].ocr_confidence == 42.0
@@ -556,15 +559,14 @@ class Product:
 after `products = extract_products_from_text(raw_text)` add:
 
 ```python
-    mean_conf = sum(confidences) / len(confidences) if confidences else None
-    if mean_conf is not None:
-        for p in products:
-            p.ocr_confidence = mean_conf
-        if mean_conf < settings.ocr.low_confidence_threshold:
-            errors.append(
-                f"Низкий OCR-confidence: среднее {mean_conf:.1f} < порога "
-                f"{settings.ocr.low_confidence_threshold}"
-            )
+mean_conf = sum(confidences) / len(confidences) if confidences else None
+if mean_conf is not None:
+    for p in products:
+        p.ocr_confidence = mean_conf
+    if mean_conf < settings.ocr.low_confidence_threshold:
+        errors.append(
+            f"Низкий OCR-confidence: среднее {mean_conf:.1f} < порога {settings.ocr.low_confidence_threshold}"
+        )
 ```
 
 (Import `settings` from `config` at module top.)
@@ -585,19 +587,19 @@ after `products = extract_products_from_text(raw_text)` add:
 Also preserve on the merge in `_merge_duplicates`:
 
 ```python
-            merged_product = Product(
-                name=match_group[0].name,
-                article=match_group[0].article,
-                quantity=sum(p.quantity for p in match_group),
-                supplier=supplier if supplier != "UNKNOWN" else (
-                    next((p.supplier for p in match_group if p.supplier != "UNKNOWN"), "UNKNOWN")
-                ),
-                unit=next((p.unit for p in match_group if p.unit), ""),
-                ocr_confidence=min(
-                    (p.ocr_confidence for p in match_group if p.ocr_confidence is not None),
-                    default=None,
-                ),
-            )
+merged_product = Product(
+    name=match_group[0].name,
+    article=match_group[0].article,
+    quantity=sum(p.quantity for p in match_group),
+    supplier=supplier
+    if supplier != "UNKNOWN"
+    else (next((p.supplier for p in match_group if p.supplier != "UNKNOWN"), "UNKNOWN")),
+    unit=next((p.unit for p in match_group if p.unit), ""),
+    ocr_confidence=min(
+        (p.ocr_confidence for p in match_group if p.ocr_confidence is not None),
+        default=None,
+    ),
+)
 ```
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -662,17 +664,14 @@ Expected: FAIL — both rows share the default background (no highlight code yet
 - [ ] **Step 3: Implement** — end of `_filter_data` in `parsed_data_page.py`:
 
 ```python
-        self.table.load_data([
-            [p.supplier, p.name, p.article, str(p.quantity)]
-            for p in filtered
-        ])
-        for row_idx, p in enumerate(filtered):
-            if p.ocr_confidence is not None and p.ocr_confidence < settings.ocr.low_confidence_threshold:
-                brush = QBrush(QColor("#fab387"))  # existing warning idiom from DataTable status colors
-                for col in range(4):
-                    item = self.table.item(row_idx, col)
-                    if item is not None:
-                        item.setBackground(brush)
+self.table.load_data([[p.supplier, p.name, p.article, str(p.quantity)] for p in filtered])
+for row_idx, p in enumerate(filtered):
+    if p.ocr_confidence is not None and p.ocr_confidence < settings.ocr.low_confidence_threshold:
+        brush = QBrush(QColor("#fab387"))  # existing warning idiom from DataTable status colors
+        for col in range(4):
+            item = self.table.item(row_idx, col)
+            if item is not None:
+                item.setBackground(brush)
 ```
 
 Imports to add: `from PySide6.QtGui import QBrush, QColor` and `from config import settings`.
@@ -818,15 +817,17 @@ def compare_tables(
 In the double loop after `score = calculate_score(...)`:
 
 ```python
-            if score >= threshold:
-                candidates.append((score, oi, ii))
-            elif review_pairs is not None and classify(score, config) == "review":
-                review_pairs.append(ReviewPair(
-                    article_a=order_item.article,
-                    article_b=inv_item.article,
-                    score=score,
-                    source="comparator",
-                ))
+if score >= threshold:
+    candidates.append((score, oi, ii))
+elif review_pairs is not None and classify(score, config) == "review":
+    review_pairs.append(
+        ReviewPair(
+            article_a=order_item.article,
+            article_b=inv_item.article,
+            score=score,
+            source="comparator",
+        )
+    )
 ```
 
 (Import `classify` and `ReviewPair`.)
@@ -843,17 +844,19 @@ def normalize_data(
 pass `review_pairs` through to `_merge_duplicates(cleaned, review_pairs=review_pairs)`; in the pairwise loop replace the bare `compare_articles` call with:
 
 ```python
-                score = calculate_score(p1.article, p2.article, config)
-                if score >= (config or ArticleConfig()).threshold:
-                    match_group.append(p2)
-                    used.add(j)
-                elif review_pairs is not None and classify(score, config) == "review":
-                    review_pairs.append(ReviewPair(
-                        article_a=p1.article,
-                        article_b=p2.article,
-                        score=score,
-                        source="normalizer",
-                    ))
+score = calculate_score(p1.article, p2.article, config)
+if score >= (config or ArticleConfig()).threshold:
+    match_group.append(p2)
+    used.add(j)
+elif review_pairs is not None and classify(score, config) == "review":
+    review_pairs.append(
+        ReviewPair(
+            article_a=p1.article,
+            article_b=p2.article,
+            score=score,
+            source="normalizer",
+        )
+    )
 ```
 
 (Import `calculate_score`, `classify`, `ReviewPair` alongside the existing `compare_articles` import; keep `compare_articles` exported for tests.)
@@ -945,15 +948,16 @@ Expected: FAIL — `AttributeError: 'ProcurementBackend' object has no attribute
 `gui/services/backend_interface.py` — add abstract methods:
 
 ```python
-    @abstractmethod
-    def get_review_pairs(self) -> list[dict]:
-        """Return pending gray-band article pairs awaiting review."""
-        ...
+@abstractmethod
+def get_review_pairs(self) -> list[dict]:
+    """Return pending gray-band article pairs awaiting review."""
+    ...
 
-    @abstractmethod
-    def decide_review_pair(self, article_a: str, article_b: str, decision: str) -> None:
-        """Record a review decision ('confirmed' | 'rejected') and persist it."""
-        ...
+
+@abstractmethod
+def decide_review_pair(self, article_a: str, article_b: str, decision: str) -> None:
+    """Record a review decision ('confirmed' | 'rejected') and persist it."""
+    ...
 ```
 
 `gui/services/backend_impl.py`:
@@ -968,45 +972,51 @@ Expected: FAIL — `AttributeError: 'ProcurementBackend' object has no attribute
 ```
 
 ```python
-    def _review_db_path(self) -> Path:
-        return settings.emails_db_path.parent / "match_review.json"
+def _review_db_path(self) -> Path:
+    return settings.emails_db_path.parent / "match_review.json"
 
-    def _load_review_db(self) -> None:
-        path = self._review_db_path()
-        if path.exists():
-            try:
-                self._review_decisions = json.loads(path.read_text(encoding="utf-8"))
-            except Exception:
-                logger.warning("Failed to load match review DB from %s", path)
-                self._review_decisions = []
 
-    def _save_review_db(self) -> None:
+def _load_review_db(self) -> None:
+    path = self._review_db_path()
+    if path.exists():
         try:
-            self._review_db_path().write_text(
-                json.dumps(self._review_decisions, ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
+            self._review_decisions = json.loads(path.read_text(encoding="utf-8"))
         except Exception:
-            logger.exception("Failed to save match review DB")
+            logger.warning("Failed to load match review DB from %s", path)
+            self._review_decisions = []
 
-    def get_review_pairs(self) -> list[dict]:
-        decided = {(d["article_a"], d["article_b"]) for d in self._review_decisions}
-        return [
-            {"article_a": p.article_a, "article_b": p.article_b, "score": p.score, "source": p.source}
-            for p in self._pending_review_pairs
-            if (p.article_a, p.article_b) not in decided
-        ]
 
-    def decide_review_pair(self, article_a: str, article_b: str, decision: str) -> None:
-        if decision not in ("confirmed", "rejected"):
-            raise ValueError(f"Invalid decision: {decision}")
-        self._review_decisions.append({
+def _save_review_db(self) -> None:
+    try:
+        self._review_db_path().write_text(
+            json.dumps(self._review_decisions, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+    except Exception:
+        logger.exception("Failed to save match review DB")
+
+
+def get_review_pairs(self) -> list[dict]:
+    decided = {(d["article_a"], d["article_b"]) for d in self._review_decisions}
+    return [
+        {"article_a": p.article_a, "article_b": p.article_b, "score": p.score, "source": p.source}
+        for p in self._pending_review_pairs
+        if (p.article_a, p.article_b) not in decided
+    ]
+
+
+def decide_review_pair(self, article_a: str, article_b: str, decision: str) -> None:
+    if decision not in ("confirmed", "rejected"):
+        raise ValueError(f"Invalid decision: {decision}")
+    self._review_decisions.append(
+        {
             "article_a": article_a,
             "article_b": article_b,
             "decision": decision,
             "ts": datetime.now().isoformat(),
-        })
-        self._save_review_db()
+        }
+    )
+    self._save_review_db()
 ```
 
 Wire collection: in `process_files` and `compare`, replace `normalize_data(...)` / `compare_tables(...)` calls to pass `review_pairs=self._pending_review_pairs` (reset the list at the start of each of those methods).
@@ -1101,15 +1111,19 @@ def test_calibrate_prints_table_and_recommended_threshold(tmp_path):
     labels = tmp_path / "match_review.json"
     # Confirmed pairs should score high; rejected low (use real calculate_score values).
     from core.article_match import calculate_score
+
     hi_a, hi_b = "71B3750", "71B3750"
     lo_a, lo_b = "RT110GR.1/000/600", "RT110GR.1/128/150"
     assert calculate_score(hi_a, hi_b) >= 0.9
     assert calculate_score(lo_a, lo_b) <= 0.5
-    _write_labels(labels, [
-        {"article_a": hi_a, "article_b": hi_b, "decision": "confirmed"},
-        {"article_a": lo_a, "article_b": lo_b, "decision": "rejected"},
-        {"article_a": "71B3751", "article_b": "71B3751", "decision": "confirmed"},
-    ])
+    _write_labels(
+        labels,
+        [
+            {"article_a": hi_a, "article_b": hi_b, "decision": "confirmed"},
+            {"article_a": lo_a, "article_b": lo_b, "decision": "rejected"},
+            {"article_a": "71B3751", "article_b": "71B3751", "decision": "confirmed"},
+        ],
+    )
 
     result = CliRunner().invoke(main_mod.app, ["calibrate", "--labels", str(labels)])
     assert result.exit_code == 0, result.output
@@ -1121,10 +1135,13 @@ def test_calibrate_apply_rewrites_config_threshold(tmp_path):
     import config as config_mod
 
     labels = tmp_path / "match_review.json"
-    _write_labels(labels, [
-        {"article_a": "71B3750", "article_b": "71B3750", "decision": "confirmed"},
-        {"article_a": "XYZ-1", "article_b": "XYZ-9", "decision": "rejected"},
-    ])
+    _write_labels(
+        labels,
+        [
+            {"article_a": "71B3750", "article_b": "71B3750", "decision": "confirmed"},
+            {"article_a": "XYZ-1", "article_b": "XYZ-9", "decision": "rejected"},
+        ],
+    )
     cfg_src = tmp_path / "config.py"
     cfg_src.write_text(
         "class ArticleMatchConfig:\n    threshold: float = 0.75\n",
@@ -1184,7 +1201,11 @@ def calibrate(
         recall = tp / (tp + fn) if tp + fn else 0.0
         f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
         table.add_row(f"{t:.2f}", f"{precision:.3f}", f"{recall:.3f}", f"{f1:.3f}")
-        if best is None or (f1, precision, t) > best[0:1] + best[1:2] + best[2:3] if False else (f1 > best[0] or (f1 == best[0] and precision > best[1])):
+        if (
+            best is None or (f1, precision, t) > best[0:1] + best[1:2] + best[2:3]
+            if False
+            else (f1 > best[0] or (f1 == best[0] and precision > best[1]))
+        ):
             best = (f1, precision, t)
     console.print(table)
     if best is None:

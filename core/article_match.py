@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import re
 import logging
-from dataclasses import dataclass, field
+import re
+from dataclasses import dataclass
 from functools import lru_cache
 
 logger = logging.getLogger(__name__)
@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class ArticleConfig:
     """Configuration for article matching."""
+
     prefix_length: int = 8
     threshold: float = 0.75
     gray_band: tuple[float, float] = (0.5, 0.75)
@@ -25,6 +26,7 @@ class ArticleConfig:
 @dataclass(frozen=True)
 class ArticleTokens:
     """Parsed article tokens."""
+
     raw: str
     normalized: str
     prefix: str
@@ -41,6 +43,7 @@ def get_config() -> ArticleConfig:
 
 
 # ── Normalization ────────────────────────────────────────────────────────────
+
 
 def normalize_article(article: str) -> str:
     """Normalize article: strip, remove separators, uppercase, keep alphanumeric."""
@@ -62,7 +65,7 @@ def tokenize_article(article: str) -> ArticleTokens:
     main_match = re.match(r"^[A-Z0-9]+", normalized)
     main_token = main_match.group(0) if main_match else ""
 
-    remaining = normalized[len(main_token):] if main_token else normalized
+    remaining = normalized[len(main_token) :] if main_token else normalized
     numeric_tokens = tuple(re.findall(r"\d+", remaining))
 
     return ArticleTokens(
@@ -75,6 +78,7 @@ def tokenize_article(article: str) -> ArticleTokens:
 
 
 # ── Scoring ──────────────────────────────────────────────────────────────────
+
 
 def _numeric_overlap(a: ArticleTokens, b: ArticleTokens) -> float:
     if not a.numeric_tokens or not b.numeric_tokens:
@@ -133,7 +137,13 @@ def calculate_score(
 
     logger.debug(
         "SCORE: %s vs %s → %.3f (prefix=%.1f main=%.1f num=%.2f fuzzy=%.2f)",
-        article_a, article_b, total, prefix_score, main_score, numeric_score, fuzzy_score_val,
+        article_a,
+        article_b,
+        total,
+        prefix_score,
+        main_score,
+        numeric_score,
+        fuzzy_score_val,
     )
     return total
 
@@ -147,7 +157,9 @@ def compare_articles(
     cfg = config or _default_config
     score = calculate_score(article_a, article_b, cfg)
     match = score >= cfg.threshold
-    logger.debug("DECISION: %s vs %s → %.3f >= %.2f → %s", article_a, article_b, score, cfg.threshold, "MATCH" if match else "NO")
+    logger.debug(
+        "DECISION: %s vs %s → %.3f >= %.2f → %s", article_a, article_b, score, cfg.threshold, "MATCH" if match else "NO"
+    )
     return match
 
 

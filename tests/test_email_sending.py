@@ -11,10 +11,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from models import Product, SupplierGroup, DocumentParseResult
-
+from models import DocumentParseResult, Product, SupplierGroup
 
 # ── helpers ─────────────────────────────────────────────────────────────────
+
 
 def _make_backend_with_supplier():
     from gui.services.backend_impl import ProcurementBackend
@@ -33,13 +33,12 @@ class _RecordingSender:
         self.calls: list[dict] = []
 
     def __call__(self, to, supplier_name, attachment_path, **kwargs):
-        self.calls.append(
-            {"to": to, "supplier_name": supplier_name, "attachment_path": Path(attachment_path)}
-        )
+        self.calls.append({"to": to, "supplier_name": supplier_name, "attachment_path": Path(attachment_path)})
         return {"status": self.status, "message": self.status}
 
 
 # ── P0-1: GUI path ──────────────────────────────────────────────────────────
+
 
 def test_gui_send_emails_calls_mailer_with_generated_attachment(tmp_path, monkeypatch):
     """After generate_orders, send must attach the real generated file."""
@@ -113,6 +112,7 @@ def test_gui_send_emails_skips_suppliers_without_email(tmp_path, monkeypatch):
 
 # ── P0-2: attachment must exist, CLI must use the generated path ────────────
 
+
 def test_send_purchase_order_email_errors_on_missing_attachment(tmp_path, monkeypatch):
     """Missing attachment → error status; SMTP must not be contacted."""
     import mailer.sender as sender_mod
@@ -145,17 +145,13 @@ def test_cli_process_send_emails_attaches_generated_file(tmp_path, monkeypatch):
     product = Product(name="Петля", article="71B3750", quantity=10.0, supplier="Blum")
     input_file = tmp_path / "in.xlsx"
     input_file.write_bytes(b"stub")
-    parse_result = DocumentParseResult(
-        file_path=input_file, file_type="xlsx", products=[product]
-    )
+    parse_result = DocumentParseResult(file_path=input_file, file_type="xlsx", products=[product])
     monkeypatch.setattr(main_mod, "parse_document", lambda p: parse_result)
 
     # Simulate the real naming scheme: <supplier>_<dd.mm.yyyy>.xlsx
     real_generated = tmp_path / "Blum_19.10.2026.xlsx"
     real_generated.write_bytes(b"stub")
-    monkeypatch.setattr(
-        main_mod, "generate_purchase_order", lambda sg, output_dir: real_generated
-    )
+    monkeypatch.setattr(main_mod, "generate_purchase_order", lambda sg, output_dir: real_generated)
 
     sender = _RecordingSender()
     monkeypatch.setattr("mailer.sender.send_purchase_order_email", sender)

@@ -1,11 +1,8 @@
 """Parsed data page view."""
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QLineEdit, QComboBox, QHeaderView
-)
-from PySide6.QtCore import Qt, Slot
+from PySide6.QtCore import Slot
 from PySide6.QtGui import QBrush, QColor
+from PySide6.QtWidgets import QComboBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout, QWidget
 
 from config import settings
 from gui.components import DataTable
@@ -63,10 +60,7 @@ class ParsedDataPage(QWidget):
     @Slot()
     def refresh_data(self):
         products = self.vm.products
-        self.table.load_data([
-            [p.supplier, p.name, p.article, str(p.quantity)]
-            for p in products
-        ])
+        self.table.load_data([[p.supplier, p.name, p.article, str(p.quantity)] for p in products])
         self._highlight_low_confidence(products)
         self._update_supplier_filter()
 
@@ -86,15 +80,13 @@ class ParsedDataPage(QWidget):
 
         products = self.vm.products
         filtered = [
-            p for p in products
+            p
+            for p in products
             if (not search or search in p.name.lower() or search in p.article.lower())
             and (supplier == "Все поставщики" or p.supplier == supplier)
         ]
 
-        self.table.load_data([
-            [p.supplier, p.name, p.article, str(p.quantity)]
-            for p in filtered
-        ])
+        self.table.load_data([[p.supplier, p.name, p.article, str(p.quantity)] for p in filtered])
         self._highlight_low_confidence(filtered)
 
     def _highlight_low_confidence(self, products):

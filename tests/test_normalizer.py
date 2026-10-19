@@ -1,14 +1,14 @@
 """Unit tests for normalizer module."""
 
-from models import Product
 from core.normalizer import (
+    _make_key,
     _normalize_article,
     _normalize_name,
     _normalize_supplier,
     _validate_article,
-    _make_key,
     normalize_data,
 )
+from models import Product
 
 
 class TestNormalizeArticle:

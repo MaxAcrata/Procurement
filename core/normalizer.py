@@ -2,23 +2,33 @@
 
 from __future__ import annotations
 
-import re
 import logging
+import re
 
+from core.article_match import ArticleConfig, calculate_score, classify
 from models import Product, ReviewPair
-from core.article_match import calculate_score, classify, compare_articles, ArticleConfig
 
 logger = logging.getLogger(__name__)
 
 # OCR double-letter fix map
 _OCR_FIXES: dict[str, str] = {
-    "ОО": "OO", "ЛЛ": "LL", "НН": "HH", "ММ": "MM",
-    "ТТ": "TT", "РР": "PP", "ВВ": "BB", "АА": "AA",
+    "ОО": "OO",
+    "ЛЛ": "LL",
+    "НН": "HH",
+    "ММ": "MM",
+    "ТТ": "TT",
+    "РР": "PP",
+    "ВВ": "BB",
+    "АА": "AA",
 }
 
 # Russian legal-form abbreviations
 _LEGAL_FORMS: dict[str, str] = {
-    "ооо": "ООО", "зао": "ЗАО", "пао": "ПАО", "ао": "АО", "ип": "ИП",
+    "ооо": "ООО",
+    "зао": "ЗАО",
+    "пао": "ПАО",
+    "ао": "АО",
+    "ип": "ИП",
 }
 
 
@@ -55,6 +65,7 @@ def normalize_data(
 
 
 # ── Individual normalizers ───────────────────────────────────────────────────
+
 
 def _normalize_name(name: str) -> str:
     if not name:
@@ -99,13 +110,14 @@ def _normalize_supplier(supplier: str) -> str:
     supplier_lower = supplier.lower()
     for abbr, full in _LEGAL_FORMS.items():
         if supplier_lower.startswith(abbr + " ") or supplier_lower.startswith(abbr + "\n"):
-            supplier = full + supplier[len(abbr):]
+            supplier = full + supplier[len(abbr) :]
             break
 
     return supplier
 
 
 # ── Deduplication ────────────────────────────────────────────────────────────
+
 
 def _merge_duplicates(
     products: list[Product],
@@ -134,7 +146,7 @@ def _merge_duplicates(
                 continue
 
             match_group = [p1]
-            for j, p2 in enumerate(group[i + 1:], start=i + 1):
+            for j, p2 in enumerate(group[i + 1 :], start=i + 1):
                 if j in used:
                     continue
                 score = calculate_score(p1.article, p2.article, config)
@@ -142,20 +154,22 @@ def _merge_duplicates(
                     match_group.append(p2)
                     used.add(j)
                 elif review_pairs is not None and classify(score, config) == "review":
-                    review_pairs.append(ReviewPair(
-                        article_a=p1.article,
-                        article_b=p2.article,
-                        score=score,
-                        source="normalizer",
-                    ))
+                    review_pairs.append(
+                        ReviewPair(
+                            article_a=p1.article,
+                            article_b=p2.article,
+                            score=score,
+                            source="normalizer",
+                        )
+                    )
 
             merged_product = Product(
                 name=match_group[0].name,
                 article=match_group[0].article,
                 quantity=sum(p.quantity for p in match_group),
-                supplier=supplier if supplier != "UNKNOWN" else (
-                    next((p.supplier for p in match_group if p.supplier != "UNKNOWN"), "UNKNOWN")
-                ),
+                supplier=supplier
+                if supplier != "UNKNOWN"
+                else (next((p.supplier for p in match_group if p.supplier != "UNKNOWN"), "UNKNOWN")),
                 unit=next((p.unit for p in match_group if p.unit), ""),
                 ocr_confidence=min(
                     (p.ocr_confidence for p in match_group if p.ocr_confidence is not None),

@@ -1,30 +1,38 @@
 """Main application window."""
 
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QPushButton, QLabel, QStackedWidget, QFrame,
-    QProgressBar, QSizePolicy
-)
-from PySide6.QtCore import Qt, Slot, QSize
-from PySide6.QtGui import QFont
-
-from gui.services.backend_impl import ProcurementBackend
-from gui.viewmodels.file_upload_vm import FileUploadViewModel
-from gui.viewmodels.parsed_data_vm import ParsedDataViewModel
-from gui.viewmodels.suppliers_vm import SuppliersViewModel
-from gui.viewmodels.orders_vm import OrdersViewModel
-from gui.viewmodels.comparison_vm import ComparisonViewModel
-from gui.viewmodels.email_vm import EmailViewModel
-from gui.viewmodels.history_vm import HistoryViewModel
-from gui.viewmodels.review_vm import ReviewViewModel
-
-from gui.views import (
-    FileUploadPage, ParsedDataPage,
-    SuppliersPage, OrdersPage, ComparisonPage, EmailPage, HistoryPage,
-    ReviewPage,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QProgressBar,
+    QPushButton,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
 )
 
 from gui.components import StatusBadge
+from gui.services.backend_impl import ProcurementBackend
+from gui.viewmodels.comparison_vm import ComparisonViewModel
+from gui.viewmodels.email_vm import EmailViewModel
+from gui.viewmodels.file_upload_vm import FileUploadViewModel
+from gui.viewmodels.history_vm import HistoryViewModel
+from gui.viewmodels.orders_vm import OrdersViewModel
+from gui.viewmodels.parsed_data_vm import ParsedDataViewModel
+from gui.viewmodels.review_vm import ReviewViewModel
+from gui.viewmodels.suppliers_vm import SuppliersViewModel
+from gui.views import (
+    ComparisonPage,
+    EmailPage,
+    FileUploadPage,
+    HistoryPage,
+    OrdersPage,
+    ParsedDataPage,
+    ReviewPage,
+    SuppliersPage,
+)
 
 
 class MainWindow(QMainWindow):
@@ -148,7 +156,7 @@ class MainWindow(QMainWindow):
             "history": HistoryPage(self.vm_history),
         }
 
-        for key, text, _ in self.NAV_ITEMS:
+        for key, _text, _ in self.NAV_ITEMS:
             page = page_map[key]
             self.pages[key] = page
             self.stack.addWidget(page)

@@ -1,10 +1,17 @@
 """Review queue page — gray-band article pairs awaiting decision."""
 
+from PySide6.QtCore import Slot
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QTableWidget,
-    QTableWidgetItem, QAbstractItemView, QHeaderView,
+    QAbstractItemView,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
 )
-from PySide6.QtCore import Qt, Slot
 
 from gui.viewmodels.review_vm import ReviewViewModel
 

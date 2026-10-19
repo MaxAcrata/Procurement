@@ -24,6 +24,7 @@ def _safe_filename(name: str) -> str:
 
 # ── Purchase order ───────────────────────────────────────────────────────────
 
+
 def generate_purchase_order(
     supplier: SupplierGroup,
     output_dir: Path,

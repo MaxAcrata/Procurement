@@ -6,11 +6,12 @@ import logging
 
 from parsers import xlsx_parser
 from parsers.docx_parser import _row_to_product as docx_row_to_product
-from parsers.pdf_parser import _row_to_product as pdf_row_to_product, parse_pdf
+from parsers.pdf_parser import _row_to_product as pdf_row_to_product
+from parsers.pdf_parser import parse_pdf
 from parsers.utils import extract_products_from_text, parse_quantity
 
-
 # ── fixtures / fakes ─────────────────────────────────────────────────────────
+
 
 class _ExplodingIloc:
     def __getitem__(self, idx):
@@ -66,14 +67,12 @@ def _build_minimal_pdf(text_lines: list[str]) -> bytes:
     out += b"0000000000 65535 f \n"
     for off in offsets:
         out += f"{off:010d} 00000 n \n".encode("ascii")
-    out += (
-        f"trailer\n<< /Size {len(objs) + 1} /Root 1 0 R >>\n"
-        f"startxref\n{xref_at}\n%%EOF"
-    ).encode("ascii")
+    out += (f"trailer\n<< /Size {len(objs) + 1} /Root 1 0 R >>\nstartxref\n{xref_at}\n%%EOF").encode("ascii")
     return bytes(out)
 
 
 # ── P2-12: silent row drops must log ─────────────────────────────────────────
+
 
 def test_parse_quantity_logs_warning_on_unparseable_value(caplog):
     with caplog.at_level(logging.WARNING, logger="parsers.utils"):
@@ -119,12 +118,17 @@ def test_pdf_skipped_row_logs_warning(caplog):
 
 # ── P2-13: table-less PDF must fall back to text extraction ──────────────────
 
+
 def test_pdf_tableless_document_falls_back_to_text(tmp_path):
     pdf_path = tmp_path / "tableless.pdf"
-    pdf_path.write_bytes(_build_minimal_pdf([
-        "Bolts sku BOLT-01 qty 12",
-        "Nuts sku NUT-02 qty 3",
-    ]))
+    pdf_path.write_bytes(
+        _build_minimal_pdf(
+            [
+                "Bolts sku BOLT-01 qty 12",
+                "Nuts sku NUT-02 qty 3",
+            ]
+        )
+    )
     result = parse_pdf(pdf_path)
     assert result.errors == []
     assert len(result.products) == 2
@@ -135,6 +139,7 @@ def test_pdf_tableless_document_falls_back_to_text(tmp_path):
 
 
 # ── P2-14a: magic numbers/whitelists promoted to named constants ─────────────
+
 
 def test_xlsx_exposes_named_heuristic_constants():
     assert xlsx_parser.CONTENT_HEURISTIC_LONG_NAME_RATIO == 0.5

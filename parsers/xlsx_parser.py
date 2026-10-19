@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 
 from models import DocumentParseResult, Product
-from parsers.utils import parse_quantity, map_columns_by_keywords
+from parsers.utils import map_columns_by_keywords, parse_quantity
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +15,18 @@ CONTENT_HEURISTIC_LONG_NAME_RATIO = 0.5
 # Few known-supplier hits in a sample are already enough to flag the column.
 SHORT_TOKEN_RATIO = 0.2
 KNOWN_SUPPLIERS = [
-    "blum", "hettich", "hafele", "grass", "camar", "ebco",
-    "мдм", "макмарт", "ikea", "леруа", "petroff", "axor",
+    "blum",
+    "hettich",
+    "hafele",
+    "grass",
+    "camar",
+    "ebco",
+    "мдм",
+    "макмарт",
+    "ikea",
+    "леруа",
+    "petroff",
+    "axor",
 ]
 KNOWN_UNITS = ["шт", "компл", "штук", "кг", "упак", "пар", "рулон", "короб"]
 
@@ -33,7 +43,9 @@ def parse_xlsx(file_path: Path) -> DocumentParseResult:
         import pandas as pd
     except ImportError:
         return DocumentParseResult(
-            file_path=file_path, file_type="xlsx", products=[],
+            file_path=file_path,
+            file_type="xlsx",
+            products=[],
             errors=["pandas not installed"],
         )
 
@@ -42,7 +54,7 @@ def parse_xlsx(file_path: Path) -> DocumentParseResult:
 
     try:
         sheets = pd.read_excel(str(file_path), sheet_name=None, engine="openpyxl", header=None)
-        for sheet_name, df in sheets.items():
+        for _sheet_name, df in sheets.items():
             if df.empty or len(df) < 1:
                 continue
             products.extend(_parse_sheet(df))
@@ -51,11 +63,15 @@ def parse_xlsx(file_path: Path) -> DocumentParseResult:
         errors.append(f"XLSX parse error: {e}")
 
     return DocumentParseResult(
-        file_path=file_path, file_type="xlsx", products=products, errors=errors,
+        file_path=file_path,
+        file_type="xlsx",
+        products=products,
+        errors=errors,
     )
 
 
 # ── Sheet-level strategies ───────────────────────────────────────────────────
+
 
 def _parse_sheet(df) -> list[Product]:
     first_row = [str(c).lower().strip() if c else "" for c in df.iloc[0]]
@@ -80,6 +96,7 @@ def _parse_rows(df, col_map: dict[str, int]) -> list[Product]:
 
 
 # ── Column type analysis ─────────────────────────────────────────────────────
+
 
 def _analyze_column_types(df) -> dict[str, int]:
     result: dict[str, int] = {}
@@ -154,6 +171,7 @@ def _position_fallback(df) -> dict[str, int]:
 
 # ── Type detectors ───────────────────────────────────────────────────────────
 
+
 def _is_numeric(s: str) -> bool:
     s = s.replace(" ", "").replace(",", ".").replace("\xa0", "")
     try:
@@ -187,6 +205,7 @@ def _is_article_column(sample: list[str]) -> bool:
 
 
 # ── Product extraction ───────────────────────────────────────────────────────
+
 
 def _extract_product(row, col_map: dict[str, int]) -> Product | None:
     try:

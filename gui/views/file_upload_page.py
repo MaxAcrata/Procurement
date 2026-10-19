@@ -1,13 +1,21 @@
 """File upload page view."""
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QTableWidget, QTableWidgetItem, QFileDialog, QLabel,
-    QHeaderView, QAbstractItemView, QFrame, QMessageBox
-)
 from PySide6.QtCore import Qt, Slot
+from PySide6.QtWidgets import (
+    QAbstractItemView,
+    QFileDialog,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QTableWidget,
+    QTableWidgetItem,
+    QVBoxLayout,
+    QWidget,
+)
 
-from gui.components import FileDropZone, StatusBadge
+from gui.components import FileDropZone
 from gui.viewmodels.file_upload_vm import FileUploadViewModel
 
 
@@ -77,7 +85,7 @@ class FileUploadPage(QWidget):
             self,
             "Выберите файлы",
             "",
-            "Все файлы (*.pdf *.docx *.xlsx *.png *.jpg *.jpeg);;PDF (*.pdf);;Word (*.docx);;Excel (*.xlsx);;Изображения (*.png *.jpg *.jpeg)"
+            "Все файлы (*.pdf *.docx *.xlsx *.png *.jpg *.jpeg);;PDF (*.pdf);;Word (*.docx);;Excel (*.xlsx);;Изображения (*.png *.jpg *.jpeg)",
         )
         if files:
             self.vm.add_files(files)
@@ -87,7 +95,9 @@ class FileUploadPage(QWidget):
             QMessageBox.warning(self, "Внимание", "Сначала добавьте файлы для обработки")
             return
         self.status_label.setText("Обработка...")
-        self.status_label.setStyleSheet("color: #fab387; font-size: 14px; font-weight: bold; background-color: #313244; border-radius: 6px; padding: 8px 12px;")
+        self.status_label.setStyleSheet(
+            "color: #fab387; font-size: 14px; font-weight: bold; background-color: #313244; border-radius: 6px; padding: 8px 12px;"
+        )
         self.btn_process.setEnabled(False)
         self.vm.process_files()
 
@@ -109,14 +119,18 @@ class FileUploadPage(QWidget):
         count = result.get("count", 0)
         if result.get("status") == "success":
             self.status_label.setText(f"Обработано: {count} позиций")
-            self.status_label.setStyleSheet("color: #a6e3a1; font-size: 14px; font-weight: bold; background-color: #313244; border-radius: 6px; padding: 8px 12px;")
+            self.status_label.setStyleSheet(
+                "color: #a6e3a1; font-size: 14px; font-weight: bold; background-color: #313244; border-radius: 6px; padding: 8px 12px;"
+            )
             for i in range(self.file_table.rowCount()):
                 status_item = QTableWidgetItem("Обработано")
                 status_item.setForeground(Qt.GlobalColor.green)
                 self.file_table.setItem(i, 2, status_item)
         else:
             self.status_label.setText("Ошибка обработки")
-            self.status_label.setStyleSheet("color: #f38ba8; font-size: 14px; font-weight: bold; background-color: #313244; border-radius: 6px; padding: 8px 12px;")
+            self.status_label.setStyleSheet(
+                "color: #f38ba8; font-size: 14px; font-weight: bold; background-color: #313244; border-radius: 6px; padding: 8px 12px;"
+            )
             errors = result.get("errors", [])
             if errors:
                 QMessageBox.warning(self, "Ошибки", "\n".join(errors[:5]))
@@ -125,7 +139,9 @@ class FileUploadPage(QWidget):
     def _on_error(self, message: str):
         self.btn_process.setEnabled(True)
         self.status_label.setText(f"Ошибка: {message}")
-        self.status_label.setStyleSheet("color: #f38ba8; font-size: 14px; font-weight: bold; background-color: #313244; border-radius: 6px; padding: 8px 12px;")
+        self.status_label.setStyleSheet(
+            "color: #f38ba8; font-size: 14px; font-weight: bold; background-color: #313244; border-radius: 6px; padding: 8px 12px;"
+        )
 
     def _clear_table(self):
         self.file_table.setRowCount(0)

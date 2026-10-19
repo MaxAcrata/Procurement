@@ -24,6 +24,7 @@ def qapp():
 
 # ── P2-19b: process_files status contract ───────────────────────────────────
 
+
 def test_process_files_empty_file_list_is_success():
     """No files → no parse errors → success with count 0, not error."""
     from gui.services.backend_impl import ProcurementBackend
@@ -40,9 +41,7 @@ def test_process_files_no_products_no_errors_is_success(monkeypatch):
     from gui.services import backend_impl
 
     def fake_parse(file_path):
-        return DocumentParseResult(
-            file_path=Path(file_path), file_type="xlsx", products=[], errors=[]
-        )
+        return DocumentParseResult(file_path=Path(file_path), file_type="xlsx", products=[], errors=[])
 
     monkeypatch.setattr(backend_impl, "parse_document", fake_parse)
 
@@ -74,6 +73,7 @@ def test_process_files_parse_errors_is_error(monkeypatch):
 
 
 # ── P2-19a: compare with no files selected must show a message ──────────────
+
 
 class _DummyBackend:
     def compare(self, order_path, invoice_paths):

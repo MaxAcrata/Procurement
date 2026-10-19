@@ -7,13 +7,13 @@ from enum import Enum
 from pathlib import Path
 
 __all__ = [
-    "SupplierMatchStatus",
-    "Product",
     "ComparisonItem",
-    "SupplierGroup",
     "DocumentParseResult",
     "PipelineResult",
+    "Product",
     "ReviewPair",
+    "SupplierGroup",
+    "SupplierMatchStatus",
 ]
 
 

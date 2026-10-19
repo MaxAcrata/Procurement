@@ -69,8 +69,7 @@ def test_parse_image_warns_when_mean_below_threshold(monkeypatch, tmp_path):
 def test_normalize_preserves_unit_and_ocr_confidence():
     from core.normalizer import normalize_data
 
-    p = Product(name="Петля", article="71B3750", quantity=1.0, supplier="Blum",
-                unit="шт", ocr_confidence=42.0)
+    p = Product(name="Петля", article="71B3750", quantity=1.0, supplier="Blum", unit="шт", ocr_confidence=42.0)
     out = normalize_data([p])
     assert out and out[0].unit == "шт"
     assert out[0].ocr_confidence == 42.0
@@ -82,11 +81,12 @@ def test_ocr_threshold_config_exists():
 
 def test_parsed_data_page_highlights_low_confidence_rows():
     from PySide6.QtWidgets import QApplication
+
     from gui.services.backend_impl import ProcurementBackend
     from gui.viewmodels.parsed_data_vm import ParsedDataViewModel
     from gui.views.parsed_data_page import ParsedDataPage
 
-    app = QApplication.instance() or QApplication([])
+    QApplication.instance() or QApplication([])
 
     backend = ProcurementBackend()
     backend._products = [

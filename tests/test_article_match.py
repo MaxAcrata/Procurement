@@ -1,11 +1,11 @@
 """Unit tests for article matching system."""
 
 from core.article_match import (
+    ArticleConfig,
+    calculate_score,
+    compare_articles,
     normalize_article,
     tokenize_article,
-    compare_articles,
-    calculate_score,
-    ArticleConfig,
 )
 
 

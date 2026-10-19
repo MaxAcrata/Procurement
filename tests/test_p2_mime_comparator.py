@@ -9,17 +9,14 @@ P2-18: Comparator brittleness — quantity compare must tolerate float noise
 
 from __future__ import annotations
 
-import io
 from pathlib import Path
 
-import pytest
-
-from models import Product, SupplierMatchStatus
-from core.comparator import compare_tables
 from core.article_match import ArticleConfig
-
+from core.comparator import compare_tables
+from models import Product, SupplierMatchStatus
 
 # ── helpers ─────────────────────────────────────────────────────────────────
+
 
 class _EvilPath:
     """Path-like whose .name is hostile but opens a real temp file.
@@ -89,6 +86,7 @@ def _send_with_attachment(tmp_path, monkeypatch, filename: str):
 
 # ── P2-17: MIME header injection ────────────────────────────────────────────
 
+
 def test_attachment_filename_with_quote_is_sanitized(tmp_path, monkeypatch):
     """A double quote in the filename must not break the quoted-string header."""
     result, msg = _send_with_attachment(tmp_path, monkeypatch, 'quote"file.xlsx')
@@ -103,9 +101,7 @@ def test_attachment_filename_with_quote_is_sanitized(tmp_path, monkeypatch):
 
 def test_attachment_filename_with_crlf_does_not_inject_or_crash(tmp_path, monkeypatch):
     """CR/LF in the filename must not inject headers nor raise HeaderParseError."""
-    result, msg = _send_with_attachment(
-        tmp_path, monkeypatch, 'crlf"\r\nX-Injected: pwned\r\n\r\n.xlsx'
-    )
+    result, msg = _send_with_attachment(tmp_path, monkeypatch, 'crlf"\r\nX-Injected: pwned\r\n\r\n.xlsx')
 
     assert result["status"] == "success"
     raw = msg.as_string()
@@ -130,6 +126,7 @@ def test_normal_filename_header_unchanged(tmp_path, monkeypatch):
 
 # ── P2-18a: quantity float tolerance ────────────────────────────────────────
 
+
 def test_quantity_float_noise_is_ok_not_mismatch():
     """10.0 vs 10.0000001 must be OK — exact float equality is too strict."""
     order = [Product(name="Ручка", article="PEN-001", quantity=10.0)]
@@ -150,6 +147,7 @@ def test_quantity_real_difference_still_mismatch():
 
 
 # ── P2-18b: best-score-first pairing ────────────────────────────────────────
+
 
 def test_pairing_prefers_globally_best_score_pair():
     """Near-duplicate SKUs: highest-score pair must win, not first order row.

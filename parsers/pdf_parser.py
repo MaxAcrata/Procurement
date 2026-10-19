@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 from models import DocumentParseResult, Product
-from parsers.utils import parse_quantity, map_columns_by_keywords, extract_products_from_text
+from parsers.utils import extract_products_from_text, map_columns_by_keywords, parse_quantity
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,9 @@ def parse_pdf(file_path: Path) -> DocumentParseResult:
         import pdfplumber
     except ImportError:
         return DocumentParseResult(
-            file_path=file_path, file_type="pdf", products=[],
+            file_path=file_path,
+            file_type="pdf",
+            products=[],
             errors=["pdfplumber not installed"],
         )
 
@@ -57,8 +59,11 @@ def parse_pdf(file_path: Path) -> DocumentParseResult:
         errors.append(f"PDF parse error: {e}")
 
     return DocumentParseResult(
-        file_path=file_path, file_type="pdf", products=products,
-        raw_text="\n".join(raw_text_parts), errors=errors,
+        file_path=file_path,
+        file_type="pdf",
+        products=products,
+        raw_text="\n".join(raw_text_parts),
+        errors=errors,
     )
 
 
