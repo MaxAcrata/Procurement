@@ -26,6 +26,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     needs: lint
+    env:
+      QT_QPA_PLATFORM: offscreen
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -46,14 +48,13 @@ jobs:
             libxcb-render-util0 \
             libxcb-shape0 \
             libxcb-xinerama0 \
-            libxcb-xkb1 \
-            xvfb
+            libxcb-xkb1
       - name: Install uv
         run: pip install uv
       - name: Install dependencies
         run: uv sync
       - name: Run tests
-        run: xvfb-run -a uv run pytest tests/ -v --tb=short
+        run: uv run pytest tests/ -v --tb=short
 
   type-check:
     runs-on: ubuntu-latest
