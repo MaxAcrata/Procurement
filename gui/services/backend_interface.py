@@ -64,6 +64,16 @@ class BackendService(ABC):
         ...
 
     @abstractmethod
+    def get_email_subject(self) -> str:
+        """Return saved email subject."""
+        ...
+
+    @abstractmethod
+    def save_email_subject(self, subject: str) -> None:
+        """Persist email subject for future use."""
+        ...
+
+    @abstractmethod
     def send_emails(self, emails_db_path: Path | None = None) -> list[dict]:
         """Send emails to suppliers."""
         ...

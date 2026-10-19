@@ -188,7 +188,25 @@ class ProcurementBackend(BackendService):
         self._emails[supplier] = email
         self._save_emails_db()
 
+    def get_email_subject(self) -> str:
+        from datetime import datetime
+
+        db_path = settings.emails_db_path.parent / "email_subject.txt"
+        if db_path.exists():
+            text = db_path.read_text(encoding="utf-8").strip()
+            if text:
+                return text
+        return f"Заявка от {datetime.now().strftime('%d.%m.%Y')}"
+
+    def save_email_subject(self, subject: str) -> None:
+        db_path = settings.emails_db_path.parent / "email_subject.txt"
+        try:
+            db_path.write_text(subject, encoding="utf-8")
+        except Exception:
+            logger.exception("Failed to save email subject")
+
     def send_emails(self, emails_db_path: Path | None = None) -> list[dict]:
+        subject = self.get_email_subject()
         results: list[dict] = []
         for sg in self._suppliers:
             email = self._emails.get(sg.name)
@@ -203,6 +221,7 @@ class ProcurementBackend(BackendService):
                 to=email,
                 supplier_name=sg.name,
                 attachment_path=order_path,
+                subject=subject,
             )
             if outcome.get("status") == "success":
                 results.append({"supplier": sg.name, "email": email, "status": "sent"})

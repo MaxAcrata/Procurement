@@ -101,6 +101,7 @@ def send_purchase_order_email(
     to: str,
     supplier_name: str,
     attachment_path: Path,
+    subject: str | None = None,
     smtp_host: str | None = None,
     smtp_port: int | None = None,
     smtp_user: str | None = None,
@@ -110,7 +111,11 @@ def send_purchase_order_email(
     if not attachment_path or not Path(attachment_path).exists():
         return {"status": "error", "message": f"Attachment not found: {attachment_path}"}
 
-    subject = "Заявка на закупку"
+    from datetime import datetime
+
+    if subject is None:
+        subject = f"Заявка от {datetime.now().strftime('%d.%m.%Y')}"
+
     body = (
         f"Уважаемые коллеги,\n\n"
         f"Направляем заявку на закупку.\n\n"

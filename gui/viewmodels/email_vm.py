@@ -19,6 +19,7 @@ class EmailViewModel(QObject):
         self._backend = backend
         self._suppliers: list[SupplierGroup] = []
         self._emails: dict[str, str] = {}
+        self._email_subject: str = ""
         self._runner = TaskRunner(self)
 
     @property
@@ -29,9 +30,14 @@ class EmailViewModel(QObject):
     def emails(self) -> dict[str, str]:
         return self._emails.copy()
 
+    @property
+    def email_subject(self) -> str:
+        return self._email_subject
+
     def refresh(self):
         self._suppliers = self._backend.get_suppliers()
         self._emails = self._backend.get_emails()
+        self._email_subject = self._backend.get_email_subject()
         self.data_changed.emit()
 
     def update_email(self, supplier: str, email: str):
@@ -41,6 +47,17 @@ class EmailViewModel(QObject):
         except Exception as e:
             self.error_occurred.emit(str(e))
             self.refresh()
+
+    def add_email(self, supplier: str, email: str):
+        try:
+            self._backend.update_email(supplier, email)
+            self.refresh()
+        except Exception as e:
+            self.error_occurred.emit(str(e))
+
+    def update_email_subject(self, subject: str):
+        self._email_subject = subject
+        self._backend.save_email_subject(subject)
 
     def send_emails(self):
         if self._runner.busy:
