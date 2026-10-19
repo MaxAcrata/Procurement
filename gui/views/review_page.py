@@ -44,7 +44,8 @@ class ReviewPage(QWidget):
         layout.addWidget(self.table)
 
         self.status_label = QLabel("")
-        self.status_label.setObjectName("subtitleLabel")
+        self.status_label.setObjectName("statusLabel")
+        self.status_label.setWordWrap(True)
         layout.addWidget(self.status_label)
 
         buttons_layout = QHBoxLayout()

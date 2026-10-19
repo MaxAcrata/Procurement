@@ -61,7 +61,8 @@ class ComparisonPage(QWidget):
         layout.addWidget(self.btn_compare)
 
         self.status_label = QLabel("")
-        self.status_label.setObjectName("subtitleLabel")
+        self.status_label.setObjectName("statusLabel")
+        self.status_label.setWordWrap(True)
         layout.addWidget(self.status_label)
 
         self.summary_layout = QHBoxLayout()

@@ -250,6 +250,27 @@ QLabel {
     color: #6c7086;
 }
 
+#statusLabel {
+    color: #cdd6f4;
+    font-size: 14px;
+    font-weight: bold;
+    background-color: #313244;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+#statusLabel[style*="success"] {
+    color: #a6e3a1;
+}
+
+#statusLabel[style*="error"] {
+    color: #f38ba8;
+}
+
+#statusLabel[style*="warning"] {
+    color: #fab387;
+}
+
 /* Status Badge */
 #statusBadge {
     background-color: #45475a;

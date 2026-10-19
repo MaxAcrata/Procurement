@@ -1,6 +1,5 @@
 """Orders page view."""
 
-from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtWidgets import (
@@ -37,12 +36,17 @@ class OrdersPage(QWidget):
         layout.addWidget(subtitle)
 
         self.table = QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(["Наименование", "Артикул", "Кол-во", "Ед.изм"])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(
+            ["Поставщик", "Наименование", "Артикул", "Кол-во", "Ед.изм"]
+        )
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # Наименование
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setAlternatingRowColors(True)
         self.table.verticalHeader().setVisible(False)
+        self.table.setSortingEnabled(True)
         layout.addWidget(self.table)
 
         buttons_layout = QHBoxLayout()
@@ -55,7 +59,8 @@ class OrdersPage(QWidget):
         layout.addLayout(buttons_layout)
 
         self.status_label = QLabel("")
-        self.status_label.setStyleSheet("color: #a6e3a1; font-size: 14px;")
+        self.status_label.setObjectName("statusLabel")
+        self.status_label.setWordWrap(True)
         layout.addWidget(self.status_label)
 
     def _connect_signals(self):
@@ -66,14 +71,28 @@ class OrdersPage(QWidget):
 
     @Slot()
     def refresh_data(self):
-        products = self.vm.products
+        products = sorted(self.vm.products, key=lambda p: (p.supplier.upper(), p.article.upper()))
+        self.table.setSortingEnabled(False)
         self.table.setRowCount(len(products))
 
         for i, p in enumerate(products):
-            self.table.setItem(i, 0, QTableWidgetItem(p.name))
-            self.table.setItem(i, 1, QTableWidgetItem(p.article))
-            self.table.setItem(i, 2, QTableWidgetItem(str(p.quantity)))
-            self.table.setItem(i, 3, QTableWidgetItem(p.unit))
+            self.table.setItem(i, 0, QTableWidgetItem(p.supplier))
+            self.table.setItem(i, 1, QTableWidgetItem(p.name))
+            self.table.setItem(i, 2, QTableWidgetItem(p.article))
+            self.table.setItem(i, 3, QTableWidgetItem(str(p.quantity)))
+            self.table.setItem(i, 4, QTableWidgetItem(p.unit))
+
+        self._set_fixed_columns()
+        self.table.setSortingEnabled(True)
+
+    def _set_fixed_columns(self):
+        """Set fixed widths: Кол-во and Ед.изм = 8 chars; Поставщик and Артикул auto."""
+        fm = self.table.fontMetrics()
+        char8 = fm.horizontalAdvance("00000000")
+        header = self.table.horizontalHeader()
+        for col in (3, 4):  # Кол-во, Ед.изм
+            header.setSectionResizeMode(col, QHeaderView.ResizeMode.Fixed)
+            self.table.setColumnWidth(col, char8 + 16)
 
     def _generate_excel(self):
         if not self.vm.products:
@@ -94,4 +113,3 @@ class OrdersPage(QWidget):
     @Slot(list)
     def _on_orders_generated(self, files):
         self.status_label.setText(f"Создано файлов: {len(files)}")
-        self.status_label.setStyleSheet("color: #a6e3a1; font-size: 14px;")

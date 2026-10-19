@@ -51,7 +51,8 @@ class EmailPage(QWidget):
         layout.addLayout(buttons_layout)
 
         self.status_label = QLabel("")
-        self.status_label.setObjectName("subtitleLabel")
+        self.status_label.setObjectName("statusLabel")
+        self.status_label.setWordWrap(True)
         layout.addWidget(self.status_label)
 
     def _connect_signals(self):
