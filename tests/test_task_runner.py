@@ -174,3 +174,26 @@ def test_email_vm_sends_in_background(qapp):
 
     assert _process_until(lambda: bool(sent))
     assert sent[0] == [{"supplier": "S", "status": "sent"}]
+
+
+def test_comparison_vm_compares_in_background(qapp):
+    from gui.viewmodels.comparison_vm import ComparisonViewModel
+
+    backend = _FakeBackend()
+    vm = ComparisonViewModel(backend)
+    done: list[tuple] = []
+    vm.comparison_done.connect(lambda results, summary: done.append((results, summary)))
+
+    vm.compare(Path("order.xlsx"), [Path("inv.xlsx")])
+    assert not done, "compare must not block"
+
+    assert _process_until(lambda: bool(done))
+    assert done[0][0] == []
+
+
+def test_task_runner_shutdown_stops_thread(qapp):
+    runner = TaskRunner()
+    assert runner.run(lambda: 1, on_result=lambda r: None, on_error=lambda e: None)
+    runner.shutdown()
+    # After shutdown the thread should be finished
+    assert not runner._thread.isRunning() or runner._thread.wait(500)

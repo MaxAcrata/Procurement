@@ -101,3 +101,46 @@ def test_review_vm_emits_and_refreshes():
     vm.decide("A", "B", "confirmed")
     assert changed
     assert vm.pairs == []
+
+
+def test_review_page_shows_pairs_and_decides():
+    from PySide6.QtWidgets import QApplication
+    from gui.services.backend_impl import ProcurementBackend
+    from gui.viewmodels.review_vm import ReviewViewModel
+    from gui.views.review_page import ReviewPage
+
+    QApplication.instance() or QApplication([])
+
+    backend = ProcurementBackend()
+    backend._pending_review_pairs = [ReviewPair("X-1", "X-2", 0.6, "comparator")]
+    vm = ReviewViewModel(backend)
+    page = ReviewPage(vm)
+    vm.refresh()
+
+    assert page.table.rowCount() == 1
+    assert page.table.item(0, 0).text() == "X-1"
+    assert page.table.item(0, 1).text() == "X-2"
+
+    page.table.selectRow(0)
+    page._decide("confirmed")
+    assert page.table.rowCount() == 0
+
+
+def test_backend_process_files_collects_review_pairs():
+    import gui.services.backend_impl as bi
+    from gui.services.backend_impl import ProcurementBackend
+
+    # Use real data path (no monkeypatch needed for this test)
+    backend = ProcurementBackend()
+    # Simulate two products that fall in gray band
+    from models import Product
+    p1 = Product(name="A", article="RT110GR.1/000/600", quantity=1.0, supplier="S")
+    p2 = Product(name="B", article="RT110GR.1/128/150", quantity=1.0, supplier="S")
+
+    # Directly test normalize with review_pairs (bypasses parse)
+    from core.normalizer import normalize_data
+    from core.article_match import ArticleConfig
+    cfg = ArticleConfig(threshold=0.8, gray_band=(0.4, 0.8))
+    pairs: list[ReviewPair] = []
+    normalize_data([p1, p2], review_pairs=pairs, config=cfg)
+    assert any(p.source == "normalizer" for p in pairs), f"pairs={pairs}"

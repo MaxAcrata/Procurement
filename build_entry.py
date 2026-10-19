@@ -42,4 +42,7 @@ else:
     # Wait for user input before closing console window
     if getattr(sys, "frozen", False):
         print("\nPress Enter to exit...")
-        input()
+        try:
+            input()
+        except EOFError:
+            pass
