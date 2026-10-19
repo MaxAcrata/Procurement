@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    volumes:
+      - ./output:/app/output
+      - ./.env:/app/.env:ro
+      - ./emails_db.json:/app/emails_db.json
+    environment:
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+
+  app-dev:
+    build: .
+    volumes:
+      - .:/app
+      - ./.env:/app/.env:ro
+    environment:
+      - LOG_LEVEL=DEBUG
+    entrypoint: ["python", "-m", "pytest", "-v"]
+    profiles: ["dev"]
