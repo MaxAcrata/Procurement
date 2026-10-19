@@ -301,5 +301,66 @@ def _print_comparison_summary(summary: dict, results: list) -> None:
             console.print(f"  * {item.product.name} - {status_label}")
 
 
+@app.command()
+def calibrate(
+    labels: Path = typer.Option("match_review.json", "--labels", help="Path to labeled pairs JSON"),
+    config_path: Path | None = typer.Option(None, "--config", help="config.py to rewrite with --apply"),
+    apply: bool = typer.Option(False, "--apply", help="Write best threshold into config.py"),
+) -> None:
+    """Sweep match thresholds over labeled review pairs; print P/R/F1 and recommend one."""
+    import re
+    from core.article_match import calculate_score
+
+    if not labels.exists():
+        console.print(f"[red]Labels file not found: {labels}[/]")
+        raise typer.Exit(1)
+
+    entries = json.loads(labels.read_text(encoding="utf-8"))
+    rows: list[tuple[float, bool]] = []
+    for e in entries:
+        score = calculate_score(e["article_a"], e["article_b"])
+        rows.append((score, e.get("decision") == "confirmed"))
+
+    if not rows:
+        console.print("[yellow]No labeled pairs found.[/]")
+        raise typer.Exit(1)
+
+    table = Table("threshold", "precision", "recall", "f1")
+    best: tuple[float, float, float] | None = None  # (f1, precision, threshold)
+    thresholds = [round(0.05 * i + 0.50, 2) for i in range(10)]  # 0.50 .. 0.95
+    for t in thresholds:
+        tp = sum(1 for s, y in rows if y and s >= t)
+        fp = sum(1 for s, y in rows if not y and s >= t)
+        fn = sum(1 for s, y in rows if y and s < t)
+        precision = tp / (tp + fp) if tp + fp else 0.0
+        recall = tp / (tp + fn) if tp + fn else 0.0
+        f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+        table.add_row(f"{t:.2f}", f"{precision:.3f}", f"{recall:.3f}", f"{f1:.3f}")
+        candidate = (f1, precision, t)
+        if best is None or candidate[0] > best[0] or (candidate[0] == best[0] and candidate[1] > best[1]):
+            best = candidate
+
+    console.print(table)
+    if best is None:
+        raise typer.Exit(1)
+    f1, precision, t = best
+    console.print(f"[bold green]Recommended threshold: {t:.2f}[/] (F1={f1:.3f}, precision={precision:.3f})")
+
+    if apply:
+        target = config_path or (Path(__file__).parent / "config.py")
+        text = target.read_text(encoding="utf-8")
+        new_text, n = re.subn(
+            r"(threshold:\s*float\s*=\s*)[0-9.]+",
+            rf"\g<1>{t}",
+            text,
+            count=1,
+        )
+        if n != 1:
+            console.print("[red]Could not locate threshold field in config.py[/]")
+            raise typer.Exit(1)
+        target.write_text(new_text, encoding="utf-8")
+        console.print(f"[green]Wrote threshold={t} to {target}[/]")
+
+
 if __name__ == "__main__":
     app()

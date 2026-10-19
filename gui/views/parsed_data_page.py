@@ -5,7 +5,9 @@ from PySide6.QtWidgets import (
     QLabel, QLineEdit, QComboBox, QHeaderView
 )
 from PySide6.QtCore import Qt, Slot
+from PySide6.QtGui import QBrush, QColor
 
+from config import settings
 from gui.components import DataTable
 from gui.viewmodels.parsed_data_vm import ParsedDataViewModel
 
@@ -65,6 +67,7 @@ class ParsedDataPage(QWidget):
             [p.supplier, p.name, p.article, str(p.quantity)]
             for p in products
         ])
+        self._highlight_low_confidence(products)
         self._update_supplier_filter()
 
     def _update_supplier_filter(self):
@@ -92,6 +95,16 @@ class ParsedDataPage(QWidget):
             [p.supplier, p.name, p.article, str(p.quantity)]
             for p in filtered
         ])
+        self._highlight_low_confidence(filtered)
+
+    def _highlight_low_confidence(self, products):
+        brush = QBrush(QColor("#fab387"))
+        for row_idx, p in enumerate(products):
+            if p.ocr_confidence is not None and p.ocr_confidence < settings.ocr.low_confidence_threshold:
+                for col in range(4):
+                    item = self.table.item(row_idx, col)
+                    if item is not None:
+                        item.setBackground(brush)
 
     def _delete_selected(self):
         row = self.table.currentRow()

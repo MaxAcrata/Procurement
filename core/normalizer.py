@@ -5,8 +5,8 @@ from __future__ import annotations
 import re
 import logging
 
-from models import Product
-from core.article_match import compare_articles, ArticleConfig
+from models import Product, ReviewPair
+from core.article_match import calculate_score, classify, compare_articles, ArticleConfig
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,11 @@ _LEGAL_FORMS: dict[str, str] = {
 }
 
 
-def normalize_data(products: list[Product]) -> list[Product]:
+def normalize_data(
+    products: list[Product],
+    review_pairs: list[ReviewPair] | None = None,
+    config: ArticleConfig | None = None,
+) -> list[Product]:
     """Normalize and deduplicate product data.
 
     1. Clean text (strip, normalize whitespace)
@@ -41,11 +45,13 @@ def normalize_data(products: list[Product]) -> list[Product]:
             article=_normalize_article(p.article),
             quantity=p.quantity,
             supplier=_normalize_supplier(p.supplier),
+            unit=p.unit,
+            ocr_confidence=p.ocr_confidence,
         )
         if product.name:
             cleaned.append(product)
 
-    return _merge_duplicates(cleaned)
+    return _merge_duplicates(cleaned, config=config, review_pairs=review_pairs)
 
 
 # ── Individual normalizers ───────────────────────────────────────────────────
@@ -104,6 +110,7 @@ def _normalize_supplier(supplier: str) -> str:
 def _merge_duplicates(
     products: list[Product],
     config: ArticleConfig | None = None,
+    review_pairs: list[ReviewPair] | None = None,
 ) -> list[Product]:
     """Merge duplicate products using multi-level article matching.
 
@@ -130,9 +137,17 @@ def _merge_duplicates(
             for j, p2 in enumerate(group[i + 1:], start=i + 1):
                 if j in used:
                     continue
-                if compare_articles(p1.article, p2.article, config):
+                score = calculate_score(p1.article, p2.article, config)
+                if score >= (config or ArticleConfig()).threshold:
                     match_group.append(p2)
                     used.add(j)
+                elif review_pairs is not None and classify(score, config) == "review":
+                    review_pairs.append(ReviewPair(
+                        article_a=p1.article,
+                        article_b=p2.article,
+                        score=score,
+                        source="normalizer",
+                    ))
 
             merged_product = Product(
                 name=match_group[0].name,
@@ -140,6 +155,11 @@ def _merge_duplicates(
                 quantity=sum(p.quantity for p in match_group),
                 supplier=supplier if supplier != "UNKNOWN" else (
                     next((p.supplier for p in match_group if p.supplier != "UNKNOWN"), "UNKNOWN")
+                ),
+                unit=next((p.unit for p in match_group if p.unit), ""),
+                ocr_confidence=min(
+                    (p.ocr_confidence for p in match_group if p.ocr_confidence is not None),
+                    default=None,
                 ),
             )
             merged.append(merged_product)

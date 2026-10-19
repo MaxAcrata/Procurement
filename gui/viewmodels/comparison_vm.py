@@ -5,6 +5,7 @@ from pathlib import Path
 from PySide6.QtCore import QObject, Signal
 
 from gui.services.backend_interface import BackendService
+from gui.services.task_runner import TaskRunner
 from models import ComparisonItem, SupplierMatchStatus
 
 
@@ -19,6 +20,7 @@ class ComparisonViewModel(QObject):
         self._backend = backend
         self._results: list[ComparisonItem] = []
         self._summary: dict = {}
+        self._runner = TaskRunner(self)
 
     @property
     def results(self) -> list[ComparisonItem]:
@@ -29,12 +31,21 @@ class ComparisonViewModel(QObject):
         return self._summary.copy()
 
     def compare(self, order_path: Path, invoice_paths: list[Path]):
-        try:
-            self._results = self._backend.compare(order_path, invoice_paths)
+        if self._runner.busy:
+            return
+        paths = list(invoice_paths)
+
+        def work():
+            results = self._backend.compare(order_path, paths)
+            self._results = results
             self._summary = self._calculate_summary()
-            self.comparison_done.emit(self._results, self._summary)
-        except Exception as e:
-            self.error_occurred.emit(str(e))
+            return (results, self._summary)
+
+        def done(payload):
+            results, summary = payload
+            self.comparison_done.emit(results, summary)
+
+        self._runner.run(work, on_result=done, on_error=self.error_occurred.emit)
 
     def _calculate_summary(self) -> dict:
         total = len(self._results)

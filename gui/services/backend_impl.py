@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 from gui.services.backend_interface import BackendService
-from models import Product, SupplierGroup, ComparisonItem
+from models import Product, SupplierGroup, ComparisonItem, ReviewPair
 from core.normalizer import normalize_data
 from core.grouper import group_by_supplier
 from core.comparator import compare_tables
@@ -29,7 +29,52 @@ class ProcurementBackend(BackendService):
         self._emails: dict[str, str] = {}
         self._history: list[dict] = []
         self._generated_orders: dict[str, Path] = {}
+        self._pending_review_pairs: list[ReviewPair] = []
+        self._review_decisions: list[dict] = []
+        self._load_review_db()
         self._load_emails_db()
+
+    # ── Review queue persistence ─────────────────────────────────────────
+
+    def _review_db_path(self) -> Path:
+        return settings.emails_db_path.parent / "match_review.json"
+
+    def _load_review_db(self) -> None:
+        path = self._review_db_path()
+        if path.exists():
+            try:
+                self._review_decisions = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                logger.warning("Failed to load match review DB from %s", path)
+                self._review_decisions = []
+
+    def _save_review_db(self) -> None:
+        try:
+            self._review_db_path().write_text(
+                json.dumps(self._review_decisions, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        except Exception:
+            logger.exception("Failed to save match review DB")
+
+    def get_review_pairs(self) -> list[dict]:
+        decided = {(d["article_a"], d["article_b"]) for d in self._review_decisions}
+        return [
+            {"article_a": p.article_a, "article_b": p.article_b, "score": p.score, "source": p.source}
+            for p in self._pending_review_pairs
+            if (p.article_a, p.article_b) not in decided
+        ]
+
+    def decide_review_pair(self, article_a: str, article_b: str, decision: str) -> None:
+        if decision not in ("confirmed", "rejected"):
+            raise ValueError(f"Invalid decision: {decision}")
+        self._review_decisions.append({
+            "article_a": article_a,
+            "article_b": article_b,
+            "decision": decision,
+            "ts": datetime.now().isoformat(),
+        })
+        self._save_review_db()
 
     # ── Email DB persistence ─────────────────────────────────────────────
 
@@ -60,7 +105,8 @@ class ProcurementBackend(BackendService):
             all_products.extend(result.products)
             errors.extend(result.errors)
 
-        self._products = normalize_data(all_products)
+        self._pending_review_pairs = []
+        self._products = normalize_data(all_products, review_pairs=self._pending_review_pairs)
         self._suppliers = group_by_supplier(self._products)
 
         self._add_history("process", f"Processed {len(files)} files, found {len(self._products)} items")
@@ -116,15 +162,16 @@ class ProcurementBackend(BackendService):
 
     def compare(self, order_path: Path, invoice_paths: list[Path]) -> list[ComparisonItem]:
         order_result = parse_document(order_path)
-        order_products = normalize_data(order_result.products)
+        self._pending_review_pairs = []
+        order_products = normalize_data(order_result.products, review_pairs=self._pending_review_pairs)
 
         invoice_products: list[Product] = []
         for inv_path in invoice_paths:
             inv_result = parse_document(inv_path)
             invoice_products.extend(inv_result.products)
-        invoice_products = normalize_data(invoice_products)
+        invoice_products = normalize_data(invoice_products, review_pairs=self._pending_review_pairs)
 
-        results = compare_tables(order_products, invoice_products)
+        results = compare_tables(order_products, invoice_products, review_pairs=self._pending_review_pairs)
         self._add_history("compare", f"Compared {len(order_products)} vs {len(invoice_products)} items")
         return results
 

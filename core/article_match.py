@@ -15,6 +15,7 @@ class ArticleConfig:
     """Configuration for article matching."""
     prefix_length: int = 8
     threshold: float = 0.75
+    gray_band: tuple[float, float] = (0.5, 0.75)
     weight_prefix: float = 0.4
     weight_main_token: float = 0.3
     weight_numeric: float = 0.2
@@ -148,3 +149,13 @@ def compare_articles(
     match = score >= cfg.threshold
     logger.debug("DECISION: %s vs %s → %.3f >= %.2f → %s", article_a, article_b, score, cfg.threshold, "MATCH" if match else "NO")
     return match
+
+
+def classify(score: float, config: ArticleConfig | None = None) -> str:
+    """Classify a match score as 'match' | 'review' | 'no_match'."""
+    cfg = config or _default_config
+    if score >= cfg.threshold:
+        return "match"
+    if score >= cfg.gray_band[0]:
+        return "review"
+    return "no_match"

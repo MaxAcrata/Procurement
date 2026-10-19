@@ -5,6 +5,7 @@ from pathlib import Path
 from PySide6.QtCore import QObject, Signal
 
 from gui.services.backend_interface import BackendService
+from gui.services.task_runner import TaskRunner
 
 
 class FileUploadViewModel(QObject):
@@ -19,6 +20,7 @@ class FileUploadViewModel(QObject):
         super().__init__(parent)
         self._backend = backend
         self._files: list[Path] = []
+        self._runner = TaskRunner(self)
 
     @property
     def files(self) -> list[Path]:
@@ -44,10 +46,12 @@ class FileUploadViewModel(QObject):
         if not self._files:
             self.error_occurred.emit("No files to process")
             return
-
+        if self._runner.busy:
+            return
+        files = self._files.copy()
         self.processing_started.emit()
-        try:
-            result = self._backend.process_files(self._files)
-            self.processing_finished.emit(result)
-        except Exception as e:
-            self.error_occurred.emit(str(e))
+        self._runner.run(
+            lambda: self._backend.process_files(files),
+            on_result=self.processing_finished.emit,
+            on_error=self.error_occurred.emit,
+        )

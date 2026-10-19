@@ -49,6 +49,12 @@ class RetryConfig:
     backoff_factor: float = 0.5
     timeout_seconds: float = 30.0
 
+# ── OCR ──────────────────────────────────────────────────────────────────────
+
+@dataclass(frozen=True)
+class OcrConfig:
+    low_confidence_threshold: float = 70.0
+
 # ── Application ──────────────────────────────────────────────────────────────
 
 @dataclass(frozen=True)
@@ -56,6 +62,7 @@ class AppConfig:
     smtp: SmtpConfig = field(default_factory=SmtpConfig)
     article: ArticleMatchConfig = field(default_factory=ArticleMatchConfig)
     retry: RetryConfig = field(default_factory=RetryConfig)
+    ocr: OcrConfig = field(default_factory=OcrConfig)
     emails_db_path: Path = EMAILS_DB_PATH
     output_dir: Path = OUTPUT_DIR
     log_level: str = field(default_factory=lambda: os.getenv("LOG_LEVEL", "INFO"))

@@ -16,10 +16,12 @@ from gui.viewmodels.orders_vm import OrdersViewModel
 from gui.viewmodels.comparison_vm import ComparisonViewModel
 from gui.viewmodels.email_vm import EmailViewModel
 from gui.viewmodels.history_vm import HistoryViewModel
+from gui.viewmodels.review_vm import ReviewViewModel
 
 from gui.views import (
     FileUploadPage, ParsedDataPage,
-    SuppliersPage, OrdersPage, ComparisonPage, EmailPage, HistoryPage
+    SuppliersPage, OrdersPage, ComparisonPage, EmailPage, HistoryPage,
+    ReviewPage,
 )
 
 from gui.components import StatusBadge
@@ -34,6 +36,7 @@ class MainWindow(QMainWindow):
         ("suppliers", "Поставщики", SuppliersPage),
         ("orders", "Заказы", OrdersPage),
         ("compare", "Сравнение", ComparisonPage),
+        ("review", "Ревью пар", ReviewPage),
         ("email", "Email", EmailPage),
         ("history", "История", HistoryPage),
     ]
@@ -56,6 +59,7 @@ class MainWindow(QMainWindow):
         self.vm_suppliers = SuppliersViewModel(self.backend)
         self.vm_orders = OrdersViewModel(self.backend)
         self.vm_comparison = ComparisonViewModel(self.backend)
+        self.vm_review = ReviewViewModel(self.backend)
         self.vm_email = EmailViewModel(self.backend)
         self.vm_history = HistoryViewModel(self.backend)
 
@@ -139,6 +143,7 @@ class MainWindow(QMainWindow):
             "suppliers": SuppliersPage(self.vm_suppliers),
             "orders": OrdersPage(self.vm_orders),
             "compare": ComparisonPage(self.vm_comparison),
+            "review": ReviewPage(self.vm_review),
             "email": EmailPage(self.vm_email),
             "history": HistoryPage(self.vm_history),
         }
@@ -167,6 +172,8 @@ class MainWindow(QMainWindow):
                 self.vm_suppliers.refresh()
             elif key == "orders":
                 self.vm_orders.refresh()
+            elif key == "review":
+                self.vm_review.refresh()
             elif key == "email":
                 self.vm_email.refresh()
             elif key == "history":

@@ -5,6 +5,7 @@ from pathlib import Path
 from PySide6.QtCore import QObject, Signal
 
 from gui.services.backend_interface import BackendService
+from gui.services.task_runner import TaskRunner
 from models import Product
 
 
@@ -20,6 +21,7 @@ class OrdersViewModel(QObject):
         self._backend = backend
         self._products: list[Product] = []
         self._generated_files: list[Path] = []
+        self._runner = TaskRunner(self)
 
     @property
     def products(self) -> list[Product]:
@@ -34,9 +36,15 @@ class OrdersViewModel(QObject):
         self.data_changed.emit()
 
     def generate_orders(self, output_dir: Path = Path("output")):
-        try:
-            self._generated_files = self._backend.generate_orders(output_dir)
-            self.orders_generated.emit(self._generated_files)
-            self.refresh()
-        except Exception as e:
-            self.error_occurred.emit(str(e))
+        if self._runner.busy:
+            return
+        self._runner.run(
+            lambda: self._backend.generate_orders(output_dir),
+            on_result=self._on_orders_generated,
+            on_error=self.error_occurred.emit,
+        )
+
+    def _on_orders_generated(self, files: list):
+        self._generated_files = files
+        self.orders_generated.emit(self._generated_files)
+        self.refresh()

@@ -1,10 +1,9 @@
 """Email page ViewModel."""
 
-from pathlib import Path
-
 from PySide6.QtCore import QObject, Signal
 
 from gui.services.backend_interface import BackendService
+from gui.services.task_runner import TaskRunner
 from models import SupplierGroup
 
 
@@ -20,6 +19,7 @@ class EmailViewModel(QObject):
         self._backend = backend
         self._suppliers: list[SupplierGroup] = []
         self._emails: dict[str, str] = {}
+        self._runner = TaskRunner(self)
 
     @property
     def suppliers(self) -> list[SupplierGroup]:
@@ -43,9 +43,14 @@ class EmailViewModel(QObject):
             self.refresh()
 
     def send_emails(self):
-        try:
-            results = self._backend.send_emails()
-            self.emails_sent.emit(results)
-            self.refresh()
-        except Exception as e:
-            self.error_occurred.emit(str(e))
+        if self._runner.busy:
+            return
+        self._runner.run(
+            self._backend.send_emails,
+            on_result=self._on_emails_sent,
+            on_error=self.error_occurred.emit,
+        )
+
+    def _on_emails_sent(self, results: list):
+        self.emails_sent.emit(results)
+        self.refresh()

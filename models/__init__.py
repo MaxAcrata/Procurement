@@ -13,6 +13,7 @@ __all__ = [
     "SupplierGroup",
     "DocumentParseResult",
     "PipelineResult",
+    "ReviewPair",
 ]
 
 
@@ -30,6 +31,7 @@ class Product:
     quantity: float
     supplier: str = "UNKNOWN"
     unit: str = ""
+    ocr_confidence: float | None = None
 
 
 @dataclass
@@ -64,3 +66,11 @@ class PipelineResult:
     generated_files: list[Path] = field(default_factory=list)
     emails_sent: list[str] = field(default_factory=list)
     issues: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class ReviewPair:
+    article_a: str
+    article_b: str
+    score: float
+    source: str
